@@ -93,7 +93,7 @@ reportData <- reportData %>%
 # Household level
 # -----------------------------------------------------------------------------
 
-hholdData <- read_stata(paste0(rawDir, hholdDta), encoding = "UTF-8")
+hholdData <- read_stata(paste0(rawDir, "menage.dta"), encoding = "UTF-8")
 
 # -----------------------------------------------------------------------------
 # Calories

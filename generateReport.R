@@ -1,24 +1,21 @@
 # =============================================================================
-# !!! FOR TESTING - DELETE AFTERWARD !!!
-# =============================================================================
-
-hholdDta 	<- "QM_UEMOA_GuineeBissauTerE1Vag1.dta"
-
-# =============================================================================
 # set project parameters
 # =============================================================================
 
 # specify root folders for reject and report projects
 
-rejectProjDir <- "C:/Users/wb393438/UEMOA/vague2/auto-sort/"
-reportProjDir <- "C:/Users/wb393438/UEMOA/vague2/hq-report/"
+rejectProjDir <- ""
+reportProjDir <- ""
 
-# specify report parameters
+# report title and subtitle
 
 reportTitle 	<- "YOUR TITLE HERE"
 reportSubTitle 	<- "YOUR SUBTITLE HERE"
-reportWeek 		<- NA 					# report date: ymd("YYYY-MM-DD")
-numWeeks 		<- 12 					# number of weeks to cover
+
+# report period
+
+reportWeek 		<- NA 	# end date; follow format ymd("YYYY-MM-DD")
+numWeeks 		<- 12 	# number of weeks to cover
 
 # =============================================================================
 # load necessary libraries
@@ -40,27 +37,57 @@ if(length(packagesToInstall))
 lapply(packagesNeeded, library, character.only = TRUE)
 
 # =============================================================================
+# load file paths from auto-sort program
+# =============================================================================
+
+# confirm that filePaths.R exists
+if (!file.exists(paste0(rejectProjDir, "/programmes/filePaths.R"))) {
+	stop("File that contains file paths for data, filePaths.R, is missing")
+}
+
+# load folder definitions from auto-sort program
+source(paste0(rejectProjDir, "/programmes/filePaths.R"))
+
+# =============================================================================
 # check setup
 # =============================================================================
 
-# TODO: confirm that folders exist
-# rejectProjDir
-# reportProjDir
-# rawDir
+# folders exist
+for (x in c("rejectProjDir", "reportProjDir", "rawDir")) {
+	if (!exists(x)) {
+		stop(paste0("Expected folder not found: ", x))
+	}
+}
 
-# TODO: confirm that files exist
-# paste0(constructedDir, "attributes.dta")
-# paste0(rawDir, "interview__actions.dta")
-# paste0(rawDir, hholdDta)
-# paste0(constructedDir, "totCalories.dta")
-# paste0(rawDir, "interview__comments.dta")
+# raw data files exist
+for (x in c("attributes.dta", "totCalories.dta")) {
+
+	# construct full path
+	fullPath <- paste0(constructedDir, x)
+
+	# check whether file exists at path
+	if (!file.exists(fullPath)) {
+		stop(paste0("Expected file not found: ", x))
+	}
+
+}
+
+# constructed data files exist
+for (x in c("menage.dta", "interview__actions.dta", "interview__comments.dta")) {
+
+	# construct full path
+	fullPath <- paste0(rawDir, x)
+
+	# check whether file exists at path
+	if (!file.exists(fullPath)) {
+		stop(paste0("Expected file not found: ", x))
+	}
+
+}
 
 # =============================================================================
 # Generate report
 # =============================================================================
-
-# load folder definitions from auto-sort program
-source(paste0(rejectProjDir, "/programmes/filePaths.R"))
 
 # define report date as Monday of week containing system date
 if (is.na(reportWeek)) {
