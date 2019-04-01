@@ -6,4 +6,4 @@
 **/old
 
 # output html files
-*.html
+.html
