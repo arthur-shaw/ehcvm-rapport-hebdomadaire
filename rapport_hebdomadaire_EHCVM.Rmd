@@ -1,0 +1,755 @@
+---
+title: "`r reportTitle`"
+subtitle: "`r reportSubTitle`"
+output:
+    html_document:
+      toc: true
+---
+
+```{r, setup, include = FALSE}
+
+# =============================================================================
+# load necessary libraries
+# =============================================================================
+
+# packages needed for this program 
+packagesNeeded <- c(
+	"haven", 	# to injest input Stata files
+	"tidyr", 	# to reshape attributes data from long to wide; split reject messages
+	"dplyr",	# to do basic data wrangling
+	"lubridate", # to handle reporting dates and intervals
+	"stringr", 	# to parse strings for data wranging
+	"ggplot2",	# to graph plots
+	"hrbrthemes", # to have a clean graph theme
+	"viridis", 	# to have color-blind-friendly colors in graphs
+	"rlang", 	# to support tidy eval for functions
+	"knitr",	# to have kable tables
+	"kableExtra"
+)
+
+# identify and install those packages that are not already installed
+packagesToInstall <- packagesNeeded[!(packagesNeeded %in% installed.packages()[,"Package"])]
+if(length(packagesToInstall)) 
+	install.packages(packagesToInstall, quiet = TRUE, 
+		repos = 'https://cloud.r-project.org/', dep = TRUE)
+
+# load all needed packages
+lapply(packagesNeeded, library, character.only = TRUE)
+
+# =============================================================================
+# prepare data 
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Transform attributes from long to wide
+# -----------------------------------------------------------------------------
+
+attributesList <- read_stata(file = paste0(constructedDir, "attributes.dta"))
+
+attributesData <- 
+	attributesList %>% select(interview__id, interview__key, attribName, attribVal) %>%
+	spread(key = attribName, value = attribVal)
+
+# -----------------------------------------------------------------------------
+# Get interview metadata: date, interviewer, and supervisor
+# -----------------------------------------------------------------------------
+
+actions <- read_stata(file = paste0(rawDir, "interview__actions.dta"))
+
+interviewInfo <- actions %>%			
+	filter(action == 3) %>%			# filter to completed
+	group_by(interview__id) %>% 	# group by interview
+	slice(n()) %>% 					# take last action
+	ungroup() %>%
+	rename(interviewer = originator, supervisor = responsible__name) %>%
+	mutate(
+		date = as.Date(date),
+		week = floor_date(ymd(date), unit = "week", week_start = getOption("lubridate.week.start", 1))
+		) %>%
+	select(interview__id, interviewer, supervisor, date, week)
+
+# -----------------------------------------------------------------------------
+# Join interview attributes and metadata
+# -----------------------------------------------------------------------------
+
+ reportData <- inner_join(x = attributesData, y = interviewInfo, by = "interview__id")
+
+# -----------------------------------------------------------------------------
+# Create variables that involve mutliple attributes
+# -----------------------------------------------------------------------------
+
+reportData <- reportData %>%
+	mutate(
+		# total non-food items
+		numProdNonAlim = 
+			numProdNonAlim_fetes	+
+			numProdNonAlim_7j		+
+			numProdNonAlim_30j		+
+			numProdNonAlim_3m		+
+			numProdNonAlim_6m		+
+			numProdNonAlim_12m)
+
+# -----------------------------------------------------------------------------
+# Household level
+# -----------------------------------------------------------------------------
+
+hholdData <- read_stata(paste0(rawDir, hholdDta), encoding = "UTF-8")
+
+# -----------------------------------------------------------------------------
+# Calories
+# -----------------------------------------------------------------------------
+
+caloriesByDate <- 
+	read_stata(paste0(constructedDir, "totCalories.dta"), encoding = "UTF-8") %>%
+	inner_join(interviewInfo, by = "interview__id") %>%
+	mutate(plotCalories = if_else(totCalories > 6000, 6000, totCalories)) %>%
+	mutate(group = cut(totCalories, 
+		breaks = c(-1, 800, 1500, 3000, 4000, Inf),
+		labels = c("too low", "low", "OK", "high", "too high" ))) %>%
+	select(interview__id, interview__key, supervisor, interviewer, date, week, 
+		totCalories, plotCalories, group)
+
+# =============================================================================
+# load functions
+# =============================================================================
+ 
+# define start and end of report period
+source(paste0(reportProjDir, "helper/", "defineReportPeriod.R"))
+
+# plot graph
+source(paste0(reportProjDir, "helper/", "plotOverTimeTeam.R"))
+
+# create table of top/bottom values
+source(paste0(reportProjDir, "helper/", "currentTopOrBottom.R"))
+
+# =============================================================================
+# set report period
+# =============================================================================
+
+defineReportPeriod(data = reportData, numWeeksBefore = numWeeks, endDate = reportWeek)
+
+# =============================================================================
+# set table parameters
+# =============================================================================
+
+colNames <- c(
+	"Enquêteur", 				# interviewer
+	"Moyenne cette semaine", 	# currentVal
+	"Moyenne cumulative", 		# avgValInt
+	"Écart de la moyenne globale", 			# avgValOverall
+	"N. semaines à l'extrême") 	# numWeeks
+
+```
+
+
+# Progrès de la collecte
+
+## Progression
+
+```{r numIntCompleted, echo = FALSE, warning = FALSE, message = FALSE}
+expectedSample <- 2700
+
+statusesComplete <- c(65, 100, 120, 125, 130)
+
+collectedSample <- 
+	hholdData %>%
+	filter(
+		(s00q08 %in% c(1,2)) & 							# filled by selected or replacement
+		(s00q27 == 1) &									# completely filled
+		(interview__status %in% statusesComplete) 		# filled according to SuSo
+		) %>%
+	summarise(collectedInterviews = n()) %>%
+	as.numeric()
+
+percentCollected <- 100 * (collectedSample / expectedSample)
+```
+
+```{r numPsuCompleted, echo = FALSE, warning = FALSE, message = FALSE}
+numIntExpectedPerPsu <- 12
+
+numPsuExpected <- 200
+
+completedPsu <- 
+	hholdData %>% 
+	mutate(completedInterview = 
+		((s00q08 %in% c(1,2)) & 						# filled by selected or replacement
+		(s00q27 == 1) &									# completely filled
+		(interview__status %in% statusesComplete)) 		# filled according to SuSo
+		) %>%
+	group_by(s00q01, s00q02, s00q03, s00q04, s00q06) %>%
+	summarise(numIntCompletedPsu = n()) %>%
+	ungroup() %>%
+	mutate(
+		psuComplete = numIntCompletedPsu >= numIntExpectedPerPsu,
+		psuIncomplete = numIntCompletedPsu < numIntExpectedPerPsu) %>%
+	summarise(
+		numPsuComplete = sum(psuComplete),
+		numPsuIncomplete = sum(psuIncomplete)
+		) %>%
+	mutate(numToComplete = numPsuExpected - (numPsuComplete + numPsuIncomplete))
+```
+
+- **Ménages.** Enquêté `r collectedSample` ménages--soit `r round(percentCollected, digits = 2)`% de l'échantillon.
+- **DRs.** Clôturé `r completedPsu$numPsuComplete` DR et entamé `r completedPsu$numPsuIncomplete`--soit `r 100*(completedPsu$numPsuComplete/numPsuExpected)`% des DR clotûrés, et `r 100*(completedPsu$numPsuIncomplete/numPsuExpected)`% entamé, respectivement.
+
+## Non-réponse
+
+```{r nonResponse, echo = FALSE, warning = FALSE, message = FALSE}
+statusesComplete <- c(65, 100, 120, 125, 130)
+nonResponseOverall <- 
+	hholdData %>%
+	mutate(
+		completedInterview = 
+		((s00q08 %in% c(1,2)) & 						# filled by selected or replacement
+		(s00q27 == 1) &									# completely filled
+		(interview__status %in% statusesComplete)),		# filled according to SuSo
+		completedInterview = if_else(
+			is.na(completedInterview), 
+			FALSE, completedInterview),
+		attemptedInterview = TRUE
+		) %>%
+	select(completedInterview, attemptedInterview) %>%
+	summarise(
+		numCompleted = sum(completedInterview), 
+		numAttempted = sum(attemptedInterview)) %>%
+	mutate(nonResponseRate = 
+		100 * (1 - (numCompleted / numAttempted)))
+```
+
+Le taux global de non-réponse est `r round(nonResponseOverall$nonResponseRate, digits = 2)`%.
+
+Les enquêteurs avec les taux de non-réponse les plus élevés : 
+
+```{r nonResponseTable, echo = FALSE, warning = FALSE, message = FALSE}
+
+rankPeriod = interval(reportWeekEnd - weeks(3), reportWeekEnd)
+
+nonResponseByTeam <-
+	hholdData %>%
+	mutate(
+		completedInterview = 
+		((s00q08 %in% c(1,2)) & 						# filled by selected or replacement
+		(s00q27 == 1) &									# completely filled
+		(interview__status %in% statusesComplete)),		# filled according to SuSo
+		completedInterview = if_else(
+			is.na(completedInterview), 
+			FALSE, completedInterview),
+		attemptedInterview = TRUE
+		) %>%
+	select(interview__id, completedInterview, attemptedInterview) %>%
+	left_join(interviewInfo, by = "interview__id") %>%
+	filter(week %within% rankPeriod) %>%
+	group_by(supervisor) %>%
+	summarise(
+		numCompleted = sum(completedInterview), 
+		numAttempted = sum(attemptedInterview)) %>%
+	ungroup() %>%
+	mutate(nonResponseRate = 
+		100 * (1 - (numCompleted / numAttempted))) %>%
+	select(supervisor, nonResponseRate) %>%
+	arrange(desc(nonResponseRate))
+
+nonResponseByTeam %>%
+head(10) %>%
+knitr::kable(
+	digits = 2, 
+	col.names = c("Chef d'équipe", "Taux de non-réponse"),
+	format.args = list(decimal.mark = '.', big.mark = ',')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+Motifs de non-réponse
+
+```{r reasonsNonResponse, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+reasonsNonResponse <- 
+	hholdData %>%
+	select(interview__id, s00q08, s00q09) %>%
+	left_join(interviewInfo, by = "interview__id") %>%
+	filter(
+		(week %within% rankPeriod) &
+		(s00q08 == 3 & !is.na(s00q09))
+		) %>%	
+	mutate(
+		abandon = (s00q09 == 1),
+		refus = (s00q09 == 2),
+		vacant = (s00q09 == 3)
+		) %>%
+	summarise(
+		abandon = sum(abandon),
+		refus = sum(refus),
+		vacant = sum(vacant),
+		total = n()
+		) %>%
+	mutate(
+		abandon = 100 * (abandon / total),
+		refus = 100 * (refus / total),
+		vacant = 100 * (vacant / total)
+		) %>%
+	select(abandon, refus, vacant) %>%
+	gather(abandon, refus, vacant, key = "motif", value = "pcnt")
+
+ggplot(reasonsNonResponse, aes(x = motif, y = pcnt, fill = motif)) +
+	geom_bar(stat = "identity") + 
+	scale_fill_viridis(discrete = TRUE, direction = -1) + 
+    scale_color_manual(values=c("black", "white")) +
+    theme_ipsum() +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=14),
+    ) +
+    ylim(0,100) +
+    xlab("") +
+    ylab("")
+```
+
+## Remplacement
+
+```{r replacementsGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+replacements <-
+	hholdData %>%
+	filter(interview__status %in% statusesComplete) %>%
+	select(interview__id, s00q08) %>%
+	left_join(interviewInfo, by = "interview__id") %>%
+	mutate(replacement = (s00q08 == 2 & !is.na(s00q08))) %>%
+	group_by(week, supervisor) %>%
+	summarise(numReplacements = sum(replacement)) %>%
+	ungroup() %>%
+	arrange(week, supervisor)
+
+plotOverTimeTeam(data = replacements, displayVar = numReplacements, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Nombre")	
+```
+
+# Qualité des données
+
+## Rejet
+
+### Fréquence de rejet
+
+```{r numRejectsGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+# define rejections
+rejectActions <- c(7, 8)
+
+# compute rejections per week-supervisor
+ rejectStatsSup <- 
+ 	actions %>%
+ 	left_join(
+ 		interviewInfo %>% select(interview__id, interviewer, supervisor), 
+ 		by = "interview__id") %>%
+ 	mutate(
+		date = as.Date(date),
+		week = floor_date(ymd(date), unit = "week", 
+			week_start = getOption("lubridate.week.start", 1)),
+		hqRejected = (
+			(action %in% rejectActions) & 
+			(role %in% c("Administrator", "Headquarter"))),
+		hqAutoRejected = (originator == "admin")) %>%
+	group_by(supervisor, week) %>%
+	summarise(
+		numRejected = sum(hqRejected),
+		numAutoRejected = sum(hqAutoRejected) 
+		) %>%
+	ungroup()	
+
+# plot rejections by supervisor
+plotOverTimeTeam(data = rejectStatsSup, displayVar = numRejected, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
+```
+
+```{r numRejectsTable, echo = FALSE, warning = FALSE, message = FALSE}
+# compute rejections per week-interviewer
+rejectStatsInt <- 
+ 	actions %>%
+ 	left_join(
+ 		interviewInfo %>% select(interview__id, interviewer, supervisor), 
+ 		by = "interview__id") %>%
+ 	mutate(
+		date = as.Date(date),
+		week = floor_date(ymd(date), unit = "week", 
+			week_start = getOption("lubridate.week.start", 1)),
+		hqRejected = (
+			(action %in% rejectActions) & 
+			(role %in% c("Administrator", "Headquarter"))),
+		hqAutoRejected = (originator == "admin")) %>%
+	group_by(interviewer, week) %>%
+	summarise(
+		numRejected = sum(hqRejected),
+		numAutoRejected = sum(hqAutoRejected) 
+		) %>%
+	ungroup()	
+
+# enquêteurs avec les moyennes les plus élevées
+currentTopOrBottom(data = rejectStatsInt, levelVar = interviewer, performVar = numRejected, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "top")
+
+# comment afficher 
+tableToShow %>%
+arrange(desc(currentVal), numWeeks) %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = '.', big.mark = ',')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+### Motifs de rejet
+
+Les motifs de rejet les plus fréquents pour la semaine du rapport :
+
+```{r numRejectReasonTable, echo = FALSE, warning = FALSE, message = FALSE}
+
+# process rejection messages
+rejectMessages <- 
+	
+	# load comments file, which contains rejections
+	read_stata(paste0(rawDir, "interview__comments.dta"), encoding = "UTF-8") %>%
+	
+	# find rejections
+	filter((variable %in% c("@@RejectedBySupervisor", "@@RejectedByHeadquarter")) & 
+		(role %in% c("Administrator", "Headquarter"))) %>%
+	
+	# keep those that have components of an auto-reject message
+	# filter(str_detect(comment, "ERR[EUO]+[R]*: |\\\\n")) %>%
+
+    # remove undesirable content from rejection messages
+  	mutate(														
+  		comment = str_replace(comment, '^"[ ]*', ""),			# starting quote
+  		comment = str_replace(comment, '[ ]*"$', ''),			# ending quote
+  		comment = str_replace(comment, 							# ending strange content
+  			"\\[WebInterviewUI:CommentYours[\\]]*$", ""),
+  		comment = str_replace(comment,
+  			"^[\\[]*WebInterviewUI:CommentYours\\] ", ""),		# starting strange content
+  		comment = str_replace(comment, "Your comment ", ""),	# more starting strange content
+  		comment = str_trim(comment, side = "both"), 			# whitespace padding
+  		comment = str_replace(comment, "\\.$", ""), 			# terminal .
+  		comment = str_replace(comment, "\\\\n[ \\.]*$", "") 	# terminal \n
+  		)
+
+# compute frequency of each message
+rejectReasonStats <-
+	rejectMessages %>%
+
+    # expand automated reject messages into one observation per reject reason
+    separate_rows(comment, sep = " \\\\n ")	%>%
+
+    # determine week from date
+    mutate(
+        date = as.Date(date, format = "%m/%d/%Y"),
+        week = floor_date(ymd(date), unit = "week", 
+                          week_start = getOption("lubridate.week.start", 1))) %>%
+
+    # create counts per week
+    group_by(comment, week) %>%
+    summarise(numReason = n())	
+
+# display table of top 10 rejection reasons for the report week
+rejectReasonStats %>%
+filter(week == reportWeekEnd) %>%
+select(comment, numReason) %>%
+arrange(desc(numReason)) %>%
+head(10) %>%
+knitr::kable(
+	digits = 2, 
+	col.names = c("Motif de rejet", "Fréquence"),
+	format.args = list(decimal.mark = '.', big.mark = ',')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+## Consommation
+
+### Nombre d'items de consommation alimentaire
+
+Évolution par équipe : 
+
+```{r numFoodItemsGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+# graphique
+plotOverTimeTeam(data = reportData, displayVar = numProdAlim, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
+```
+
+Enquêteurs avec une valeur moyenne dans la 1ière décile pour la semaine en cours :
+
+```{r numFoodItemsTable, echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles pendant les 2 dernières semaines
+currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numProdAlim, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = ',', big.mark = '.')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+### Calories par personne par jour
+Évolution des calories par personne par jour :
+
+```{r caloriesGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+
+# filter down reporting period
+caloriesForReport <- caloriesByDate %>%
+	filter(week %within% interval(reportWeekStart, reportWeekEnd))
+
+# compute median calories per week
+calSummary_Week <-
+	caloriesForReport %>% 
+	group_by(week) %>% 
+	summarise(calStat_Week = median(totCalories)) %>% 
+	ungroup()
+
+# plot calories over time
+ggplot(data = caloriesForReport, aes(x = week)) +
+	geom_jitter(aes(x = week, y = plotCalories, color = group), 
+		width = 0.5, height = 0.1, alpha = 0.4) + 
+	scale_color_manual(values = c("red", "orange", "grey1", "orange", "red")) +
+	geom_violin(width = 3.5, aes(x = week, y = plotCalories, group = factor(week)), 
+		fill = "grey70", color = "grey50", alpha = 0.2) +
+geom_point(data = calSummary_Week, aes(x = week, y = calStat_Week), 
+	size = 3, color = "red") + 
+geom_line(data = calSummary_Week, aes(x = week, y = calStat_Week), 
+	color = "red", size = 1.5) +    			
+theme(
+    panel.background = element_rect(fill = "white"), 
+    panel.grid.major = element_line(color = "grey"), 
+    strip.background = element_rect(fill = "white"), 
+    legend.position = "none") + 
+coord_cartesian(ylim = c(0, 6000)) +
+ylab("Calories par personne") + 
+xlab("Semaine de collecte")
+```
+
+Enquêteurs avec une valeur moyenne dans la 10ième décile pour la semaine en cours :
+
+```{r caloriesTableHigh, echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus élevées
+currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar = totCalories, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "top")
+
+# comment afficher 
+tableToShow %>%
+arrange(desc(currentVal), numWeeks) %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = ',', big.mark = '.')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+Enquêteurs avec une valeur moyenne dans la 1ière décile pour la semaine en cours :
+
+```{r caloriesTableLow, echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar = totCalories, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = ',', big.mark = '.')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+### Nombre d'items de consommation non-alimentaire
+
+```{r numNonFoodItemsGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+plotOverTimeTeam(data = reportData, displayVar = numProdNonAlim, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
+```
+
+```{r numNonFoodItemsTable , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numProdNonAlim, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = ',', big.mark = '.')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+## Composition du ménage
+
+### Taille du ménage
+
+```{r hhsizeGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+plotOverTimeTeam(data = reportData, displayVar = numMembres, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
+```
+
+```{r hhsizeTable , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numMembres, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = ',', big.mark = '.')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+### Pourcentage ménage sous l'âge de 5 ans
+
+```{r under5Graph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+percSous5Data <- reportData %>%
+	select(interview__id, interview__key, supervisor, interviewer, numMemSous5, numMembres, week) %>%
+	mutate(percSous5 = 100 * (numMemSous5 / numMembres)) %>%
+	drop_na(percSous5)
+
+plotOverTimeTeam(data = percSous5Data, displayVar = percSous5, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
+```
+
+```{r under5Table , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = percSous5Data, levelVar = interviewer, performVar = percSous5, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = ',', big.mark = '.')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+## Sources de revenu
+
+### Pourcentage avec au moins un salairé
+```{r hasSalaryGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+plotOverTimeTeam(data = reportData, displayVar = revenuEmploi, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
+```
+
+```{r hasSalaryTable , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = revenuEmploi, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = ',', big.mark = '.')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+### Nombre d'entreprises non-agricoles
+
+```{r numEnterpriseGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+plotOverTimeTeam(data = reportData, displayVar = numEntreprises, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
+```
+
+```{r numEnterpriseTable , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numEntreprises, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = ',', big.mark = '.')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+### Pourcentage dans l'agriculture
+
+```{r doesAgricGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+plotOverTimeTeam(data = reportData, displayVar = pratiqueAgriculture, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
+```
+
+```{r doesAgricTable , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiqueAgriculture, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = '.', big.mark = ',')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+### Pourcentage dans l'élevage
+
+```{r doesLivestockGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+plotOverTimeTeam(data = reportData, displayVar = pratiqueElevage, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
+```
+
+```{r doesLivestockTable , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiqueElevage, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = '.', big.mark = ',')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```
+
+### Pourcentage dans la pêche
+
+```{r doesFisheriesGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+plotOverTimeTeam(data = reportData, displayVar = pratiquePeche, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
+```
+
+```{r doesFisheriesTable , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiquePeche, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "bottom")
+
+# comment afficher 
+tableToShow %>%
+knitr::kable(
+	digits = 2, 
+	col.names = colNames,
+	format.args = list(decimal.mark = '.', big.mark = ',')
+	) %>%
+kable_styling(bootstrap_options = c("striped"))
+```

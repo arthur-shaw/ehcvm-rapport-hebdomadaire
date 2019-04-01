@@ -1,0 +1,104 @@
+# Progrès de la collecte
+
+[TABLEAU: Progrès par équipe
+	colonne 1: nom du chef,
+	colonne 2: pourcentage d'entretiens réalisés (par rapport au nombre alloué),
+	colonne 3: pourcentage d'entretiens bouclés (par rapport au nombre alloué),
+	cellules coloriées si l'INS peut fournir les attentes par semaine en entretien et DRs]
+
+
+
+# Qualité des données
+
+## Rejet
+
+### Fréquence de rejet (automatique)
+
+[GRAPHIQUE: Courbe de l'évolution du nombre moyen par équipe]
+
+[TABLEAU: Liste des enqupeteurs avec le plus de rejets]
+
+### Motifs de rejet
+
+[GRAPHIQUE: Courbe de l'évolution de la fréquence des motifs les plus importants dans cette période et les 2 à 3 périodes précédentes]
+
+
+## Consommation
+
+### Nombre d'items de consommation alimentaire
+
+[GRAPHIQUE: Courbe de l'évolution du nombre moyen par équipe]
+dset: /donnees/derivees/attributes.dta
+numProdAlim
+
+### Calories par personne par jour
+
+[GRAPHIQUE: Courbe et distribution des calories dans le temps. Voir exemple dans le message]
+dset: 
+	totCalories
+	interview__actions
+[TABLEAU: Sur-consommation. Liste des enquêteurs (et leur chef) avec le plus de cas dans la période]
+[TABLEAU: Sous-consommation. Liste des enquêteurs (et leur chef) avec le plus de cas dans la période]
+[TABLEAU: Produits le plus souvent source de problème]
+[TABLEAU: Unités le plus souvent source de problème, tout produit confondu]
+
+### Nombre d'items de consommation non-alimentaire
+
+[GRAPHIQUE: Courbe de l'évolution du nombre moyen par équipe]
+
+
+
+## Composition du ménage
+
+### Taille du ménage
+
+[GRAPHIQUE : Courbe d'évolution de la taille moyenne par équipe]
+dset: /donnees/derivees/attributes.dta
+numMembres
+
+### Nombre de membres sous l'âge de 5 (i.e., qui ne répond pas à la section 4)
+
+[GRAPHIQUE: Courbe de l'évolution du nombre moyen par équipe]
+dset: /donnees/derivees/attributes.dta
+numMemSous5
+
+## Sources de revenu
+
+### Nombre de membres sans emploi 
+
+[GRAPHIQUE: Évolution des taux d'emploi et non-emploi global par équipe, indiquée par la part de la superfice]
+
+### Nombre d'entreprises non-agricoles
+
+[GRAPHIQUE: Courbe de l'évolution du nombre moyen par équipe]
+dset: /donnees/derivees/attributes.dta
+numEntreprises
+
+### Pratique l'agriculture
+
+[GRAPHIQUE: Courbe de l'évolution du taux par équipe]
+dset: /donnees/derivees/attributes.dta
+pratiqueAgriculture
+
+### Nombre de parcelles
+
+[GRAPHIQUE: Courbe de l'évolution du nombre moyen par équipe]
+dset: /donnees/derivees/attributes.dta
+numParcelles
+
+[GRAPHIQUE: Courbe de l'évolution du nombre moyen par champ par équipe]
+dset: /donnees/derivees/attributes.dta
+numParcelles
+numChamps
+
+### Pratique l'élevage
+
+[GRAPHIQUE: Courbe de l'évolution du taux par équipe]
+dset: /donnees/derivees/attributes.dta
+pratiqueElevage
+
+### Pratique la pêche (pour les pays côtiers)
+
+[GRAPHIQUE: Courbe de l'évolution du taux par équipe]
+dset: /donnees/derivees/attributes.dta
+pratiquePeche
