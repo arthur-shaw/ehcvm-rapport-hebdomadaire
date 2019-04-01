@@ -17,8 +17,7 @@ reportProjDir <- "C:/Users/wb393438/UEMOA/vague2/hq-report/"
 
 reportTitle 	<- "YOUR TITLE HERE"
 reportSubTitle 	<- "YOUR SUBTITLE HERE"
-reportWeek 		<- ymd("2018-12-15")
-#NA 					# report date: ymd("YYYY-MM-DD")
+reportWeek 		<- NA 					# report date: ymd("YYYY-MM-DD")
 numWeeks 		<- 12 					# number of weeks to cover
 
 # =============================================================================
