@@ -1,6 +1,6 @@
 # Table des matières
 
-- Présentation rapide](#présentation-rapide)
+- [Présentation rapide](#présentation-rapide)
 - [Installation](#installation)
 - [Paramétrage](#paramétrage)
 - [Mode d'emploi](#mode-demploi)
