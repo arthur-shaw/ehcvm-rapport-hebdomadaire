@@ -5,5 +5,12 @@
 # older files
 old/*
 
+# any folders with assets generated at runtime
+rapport*/*
+
 # output html files
 *.html
+
+# notes or scratch programs
+scratch*
+*.txt
