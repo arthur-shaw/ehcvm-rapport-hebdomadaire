@@ -1,18 +1,11 @@
-
-
-# !!!! TO DELETE LATER !!!
-hholdDta 	<- "QM_UEMOA_GuineeBissauTerE1Vag1.dta"
-
-
-
 # =============================================================================
 # set project parameters
 # =============================================================================
 
 # specify root folders for reject and report projects
 
-rejectProjDir 	= "C:/Users/wb393438/UEMOA/vague2/auto-sort/"
-reportProjDir 	= "C:/Users/wb393438/UEMOA/vague2/hq-report/"
+rejectProjDir 	= ""
+reportProjDir 	= ""
 
 # report title and subtitle
 
