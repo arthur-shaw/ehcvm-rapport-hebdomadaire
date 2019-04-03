@@ -147,8 +147,6 @@ colNames <- c(
 ## Progression
 
 ```{r numIntCompleted, echo = FALSE, warning = FALSE, message = FALSE}
-expectedSample <- 2700
-
 statusesComplete <- c(65, 100, 120, 125, 130)
 
 collectedSample <- 
@@ -165,10 +163,6 @@ percentCollected <- 100 * (collectedSample / expectedSample)
 ```
 
 ```{r numPsuCompleted, echo = FALSE, warning = FALSE, message = FALSE}
-numIntExpectedPerPsu <- 12
-
-numPsuExpected <- 200
-
 completedPsu <- 
 	hholdData %>% 
 	mutate(completedInterview = 
@@ -222,7 +216,7 @@ Les enquêteurs avec les taux de non-réponse les plus élevés :
 
 ```{r nonResponseTable, echo = FALSE, warning = FALSE, message = FALSE}
 
-rankPeriod = interval(reportWeekEnd - weeks(3), reportWeekEnd)
+rankPeriod = interval(reportWeekStart, reportWeekEnd)
 
 nonResponseByTeam <-
 	hholdData %>%

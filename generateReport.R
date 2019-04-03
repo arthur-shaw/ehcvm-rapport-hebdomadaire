@@ -1,21 +1,34 @@
+
+
+# !!!! TO DELETE LATER !!!
+hholdDta 	<- "QM_UEMOA_GuineeBissauTerE1Vag1.dta"
+
+
+
 # =============================================================================
 # set project parameters
 # =============================================================================
 
 # specify root folders for reject and report projects
 
-rejectProjDir <- ""
-reportProjDir <- ""
+rejectProjDir 	= "C:/Users/wb393438/UEMOA/vague2/auto-sort/"
+reportProjDir 	= "C:/Users/wb393438/UEMOA/vague2/hq-report/"
 
 # report title and subtitle
 
-reportTitle 	<- "YOUR TITLE HERE"
-reportSubTitle 	<- "YOUR SUBTITLE HERE"
+reportTitle 	= "YOUR TITLE HERE"
+reportSubTitle 	= "YOUR SUBTITLE HERE"
 
 # report period
 
-reportWeek 		<- NA 	# end date; follow format ymd("YYYY-MM-DD")
-numWeeks 		<- 12 	# number of weeks to cover
+reportWeek 		= NA 	# end date; follow format ymd("YYYY-MM-DD")
+numWeeks 		= 12 	# number of weeks to cover
+
+# sample design
+
+expectedSample 			= NA
+numPsuExpected 			= NA
+numIntExpectedPerPsu 	= NA
 
 # =============================================================================
 # load necessary libraries
@@ -51,6 +64,13 @@ source(paste0(rejectProjDir, "/programmes/filePaths.R"))
 # =============================================================================
 # check setup
 # =============================================================================
+
+# parameters provided
+for (x in c("expectedSample", "numPsuExpected", "numIntExpectedPerPsu")) {
+	if (!exists(x)) {
+		stop(paste0("Expected paramter not found: ", x))
+	}
+}
 
 # folders exist
 for (x in c("rejectProjDir", "reportProjDir", "rawDir")) {
