@@ -71,6 +71,14 @@ Sous le "report period", au choix, renseigner les paramètres ou laisser intact 
 - `reportWeek`. Semaine de la fin de la période du rapport. Par défaut, prend la semaine de l'exécution du programme. Pour ce comportement de défaut, laisser la valeur telle quelle: `reportWeek <- NA`. Si souhaité, indiquer une autre semaine (ou date dans cette semaine). Pour indiquer une date, suivre ce modèle: `ymd("AAAA-MM-JJ")`. Par exemple, le 15 avril, 2019 devient: `ymd("2019-04-15")`.
 - `numWeeks`. Indiquer le début de la période du rapport indirectement. Plutôt qu'indiquer la date de début, il faut indiquer le nombre de semaines avant la date de fin (e.g., si numWeeks = 3, les 3 semaines avant le 1er avril). Par défaut, le nombre de semaines est 12--c'est à dire la durée totale estimée de la collecte. Si l'on laisse la valeur de défaut, le rapport couvrira toute la période de collecte à tout moment de la collecte.
 
+## Structure de l'échantillon
+
+Sous "sample design", décrire l'échantillon en remplaçant `NA` avec des chiffres. Ces informations sont utilisées dans le calcul des statistiques de progressions (i.e, pourcentage de l'échantillon bouclés, pourcentage de DRs clôturés).
+
+- `expectedSample`. Taille de l'échantillon (i.e. nombre d'entretiens escomptés). Remplacer `NA` avec un chiffre.
+- `numPsuExpected`. Nombre d'unités primaires de sélection (i.e., districts de recensement). Remplacer `NA` avec un chiffre.
+- `numIntExpectedPerPsu`. Nombre d'entriens à remplir par unité primaire de sélection (i.e., nombre d'entretiens par DR). Remplacer `NA` avec un chiffre.
+
 # Mode d'emploi
 
 - Ouvrir RStudio
