@@ -75,7 +75,7 @@ plotOverTimeTeam <- function(data, displayVar, reportStart, reportEnd, titleText
 	      panel.grid.major.y = element_blank(),
 	      legend.position="none"
 	    ) +
-	    xlab("Chef d'équipe") +
+	    xlab(xText) +
 	    ylab(yText)			
 
 	# plot a line graph for more than 1 week
