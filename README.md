@@ -1,6 +1,9 @@
 # Table des matières
 
 - [Présentation rapide](#présentation-rapide)
+- [Guide de lecture du rapport](#guide-de-lecture-du-rapport)
+    + [Graphiques](#graphiques)
+    + [Tableaux](#tableaux)
 - [Installation](#installation)
     - [Télécharger ce répositoire](#télécharger-ce-répositoire)
     - [Installer R](#installer-r)
@@ -23,6 +26,54 @@ Pour l'utiliser, il suffit d'abord de renseigner quelques paramètres, et ensuit
 Après exécution, on obtient un rapport qui couvre plusieurs indicateurs de suivi--de progrès, de qualité, etc.--en format HTML qui contient la date du rapport dans son nom.
 
 Pour consulter le rapport, il suffit de cliquer dessus afin de l'ouvrir dans un navigateur web quelconque (sans besoin d'internet).
+
+# Guide de lecture du rapport
+
+Le rapport contient deux grands chaptitres. Le premier porte sur les indicateurs de progrès et de performance de la collecte. Le second concerne les indicateurs de qualité des données.
+
+Dans chaque chapitre se trouvent des graphiques et des tableaux sur les indicateurs choisis. Les graphiques concernent les équipes. Les tableaux concernent les enquêteurs.
+
+## Graphiques
+
+Les graphiques concernent toute la période du rapport.
+
+Dans les graphiques, l'on voit des informations différentes selon que le rapport concerne une seule semaine ou plusieurs semaines. Voici une explication de chaque cas :
+
+- **Une seule semaine.** Affiche la moyenne de chaque équipe, classe les équipes par la moyenne (en ordre décroissant), et donne la moyenne globale comme une ligne rouge verticale.
+- **Plusieurs semaines.** Donne l'évolution de la moyenne de chaque équipe (par rapport à l'évolution des autres). La graphique est composée d'une sous-graphique par équipe. Chaque sous-graphique affiche la courbe de l'équipe concernée en couleur, pour la mettre en exergue, et affiche la courbe des autres équipe en gris, pour faciliter les comparaisons. L'axe Y donne le niveau de l'indicateur. L'axe X donne la semaine (ou le jour) de collecte.
+
+Les exceptions à cette description sont les graphiques sur:
+
+- Les motifs de non-réponse. 
+- Calories par personne par jour.
+
+Ces graphiques donnent des statistiques au niveau global.
+
+Pour le motif de non-réponse, la graphique donne le pourcentage pour chaque motif.
+
+Pour les calories par personne par jour, la graphique donne pour chaque semaine de collecte les informations suivantes concernant les calories :
+
+- Distribution de calories. Les points représentent le niveau de calories pour un entretien. Les lignes qui entourent les point représentent la distribution de calories.
+- Moyenne de calories. La ligne rouge tracent la moyenne globale.
+- Vraisemblance. La couleur des points indique la vraisemblance. Le rouge désigne des points aberants--en dessous de 800 ou en dessus de 4000 calories par personne par jour. L'orange désigne des niveaux de consommation acceptables mais légèrement doubteux. Le gris désigne des niveaux acceptables. 
+
+## Tableaux
+
+Les tableaux concernent la dernière semaine du rapport, mais également les trois dernières semaines à commencer par la dernière semaine.
+
+Les tableaux concernent les enquêteurs avec les moyennes les plus basses/hautes (selon l'indicateur)--formellement les enquêteurs dans la 1ière/10ième décile (selon l'indicateur). Ils sont composés des colonnes suivantes:
+
+- **Enquêteur.** Nom d'utilisateur de l'enquêteur concerné.
+- **Moyenne cette semaine.** Moyenne pour l'enquêteur pendant la semaine concernée.
+- **Moyenne cumulative.** Moyenne pour l'enquêteur pendant la période du rapport. 
+- **Écart de la moyenne globale.** Différence pour l'enquêteur entre sa moyenne cette semaine et la moyenne globale pendant la période du rapport.
+- **N. semaines à l'extrême.** Nombre de semaine pendant les trois dernière que l'enquêteur a été dans la 1ière/10ième décile (selon l'indicateur).
+
+En comparant la moyenne cette semaine et la moyenne cumulative pour un enquêteur donné, on peut voir l'écart entre la moyenne actuelle et la moyenne habituelle.
+
+En comparant la moyenne cette semaine (pour un enquêteur donné) et l'écart de la moyenne globale (pour la collecte), on peut voir l'écart entre l'enquêteur et les autres enquêteurs.
+
+En consultant la colonne sur le nombre de semaines à l'extrême, on peut voir si l'enquêteur a souvent des moyennes extrêmes par rapport à la distribution des moyennes des enquêteurs.
 
 # Installation
 
