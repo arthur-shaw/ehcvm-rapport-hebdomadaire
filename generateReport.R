@@ -1,4 +1,23 @@
 # =============================================================================
+# load necessary libraries
+# =============================================================================
+
+# packages needed for this program 
+packagesNeeded <- c(
+	"lubridate",	# to set report date as a function of system date
+	"rmarkdown" 	# to generate report
+)
+
+# identify and install those packages that are not already installed
+packagesToInstall <- packagesNeeded[!(packagesNeeded %in% installed.packages()[,"Package"])]
+if(length(packagesToInstall)) 
+	install.packages(packagesToInstall, quiet = TRUE, 
+		repos = 'https://cloud.r-project.org/', dep = TRUE)
+
+# load all needed packages
+lapply(packagesNeeded, library, character.only = TRUE)
+
+# =============================================================================
 # set project parameters
 # =============================================================================
 
@@ -22,25 +41,6 @@ numWeeks 		= 12 	# number of weeks to cover
 expectedSample 			= NA
 numPsuExpected 			= NA
 numIntExpectedPerPsu 	= NA
-
-# =============================================================================
-# load necessary libraries
-# =============================================================================
-
-# packages needed for this program 
-packagesNeeded <- c(
-	"lubridate",	# to set report date as a function of system date
-	"rmarkdown" 	# to generate report
-)
-
-# identify and install those packages that are not already installed
-packagesToInstall <- packagesNeeded[!(packagesNeeded %in% installed.packages()[,"Package"])]
-if(length(packagesToInstall)) 
-	install.packages(packagesToInstall, quiet = TRUE, 
-		repos = 'https://cloud.r-project.org/', dep = TRUE)
-
-# load all needed packages
-lapply(packagesNeeded, library, character.only = TRUE)
 
 # =============================================================================
 # load file paths from auto-sort program
