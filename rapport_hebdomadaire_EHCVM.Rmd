@@ -350,7 +350,7 @@ currentRejects <-
 	mutate(
 		date = file.info(paste0(resultsDir, "toReject.dta"))$mtime %>% as.Date(),
 		time = file.info(paste0(resultsDir, "toReject.dta"))$mtime %>% hms::as.hms(),
-		week = ymd("2019-04-08"), # reportWeekEnd
+		week = reportWeekEnd,
 		hqRejected = TRUE,
 		hqAutoRejected = TRUE) %>%
 	select(interview__id, interview__key, week, date, time, interviewer, supervisor, 
@@ -447,7 +447,7 @@ messages_currentRejects <-
 	autoRejects %>%
 	mutate(
 		date = file.info(paste0(resultsDir, "toReject.dta"))$mtime %>% as.Date(),
-		week = ymd("2019-04-08"), # reportWeekEnd
+		week = reportWeekEnd,
 		comment = rejectMessage
 		) %>%
 	separate_rows(comment, sep = " \\\\n ") %>%
