@@ -325,26 +325,52 @@ plotOverTimeTeam(data = replacements, displayVar = numReplacements, reportStart 
 # define rejections
 rejectActions <- c(7, 8)
 
-# compute rejections per week-supervisor
- rejectStatsSup <- 
+# rejections prior to auto-reject
+pastRejects <-
  	actions %>%
  	left_join(
  		interviewInfo %>% select(interview__id, interviewer, supervisor), 
  		by = "interview__id") %>%
  	mutate(
 		date = as.Date(date),
+		time = hms::as.hms(time), 
 		week = floor_date(ymd(date), unit = "week", 
 			week_start = getOption("lubridate.week.start", 1)),
 		hqRejected = (
 			(action %in% rejectActions) & 
 			(role %in% c("Administrator", "Headquarter"))),
 		hqAutoRejected = (originator == "admin")) %>%
+ 	select(interview__id, interview__key, week, date, time, interviewer, supervisor, 
+ 		hqRejected, hqAutoRejected)
+	
+# rejections as a result of auto-reject
+autoRejects <- read_stata(file = paste0(resultsDir, "toReject.dta"))
+currentRejects <- 
+	autoRejects %>%
+	mutate(
+		date = file.info(paste0(resultsDir, "toReject.dta"))$mtime %>% as.Date(),
+		time = file.info(paste0(resultsDir, "toReject.dta"))$mtime %>% hms::as.hms(),
+		week = ymd("2019-04-08"), # reportWeekEnd
+		hqRejected = TRUE,
+		hqAutoRejected = TRUE) %>%
+	select(interview__id, interview__key, week, date, time, interviewer, supervisor, 
+		hqRejected, hqAutoRejected)
+
+# combine all rejections from both sources
+allRejections <- 
+	full_join(pastRejects, currentRejects, 
+		by = c("interview__id", "interview__key", "week", "date", "time", 
+			"interviewer", "supervisor", "hqRejected", "hqAutoRejected"))
+
+# compute rejections per supervisor
+rejectStatsSup <-
+	allRejections %>%
 	group_by(supervisor, week) %>%
 	summarise(
 		numRejected = sum(hqRejected),
 		numAutoRejected = sum(hqAutoRejected) 
 		) %>%
-	ungroup()	
+	ungroup()
 
 # plot rejections by supervisor
 plotOverTimeTeam(data = rejectStatsSup, displayVar = numRejected, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
@@ -352,26 +378,15 @@ plotOverTimeTeam(data = rejectStatsSup, displayVar = numRejected, reportStart = 
 ```
 
 ```{r numRejectsTable, echo = FALSE, warning = FALSE, message = FALSE}
+
 # compute rejections per week-interviewer
 rejectStatsInt <- 
- 	actions %>%
- 	left_join(
- 		interviewInfo %>% select(interview__id, interviewer, supervisor), 
- 		by = "interview__id") %>%
- 	mutate(
-		date = as.Date(date),
-		week = floor_date(ymd(date), unit = "week", 
-			week_start = getOption("lubridate.week.start", 1)),
-		hqRejected = (
-			(action %in% rejectActions) & 
-			(role %in% c("Administrator", "Headquarter"))),
-		hqAutoRejected = (originator == "admin")) %>%
-	group_by(interviewer, week) %>%
+	allRejections %>% 
 	summarise(
 		numRejected = sum(hqRejected),
 		numAutoRejected = sum(hqAutoRejected) 
 		) %>%
-	ungroup()	
+	ungroup()
 
 # enquêteurs avec les moyennes les plus élevées
 currentTopOrBottom(data = rejectStatsInt, levelVar = interviewer, performVar = numRejected, 
@@ -395,8 +410,8 @@ Les motifs de rejet les plus fréquents pour la semaine du rapport :
 
 ```{r numRejectReasonTable, echo = FALSE, warning = FALSE, message = FALSE}
 
-# process rejection messages
-rejectMessages <- 
+# process past rejections
+messages_pastRejects <- 
 	
 	# load comments file, which contains rejections
 	read_stata(paste0(rawDir, "interview__comments.dta"), encoding = "UTF-8") %>%
@@ -404,9 +419,6 @@ rejectMessages <-
 	# find rejections
 	filter((variable %in% c("@@RejectedBySupervisor", "@@RejectedByHeadquarter")) & 
 		(role %in% c("Administrator", "Headquarter"))) %>%
-	
-	# keep those that have components of an auto-reject message
-	# filter(str_detect(comment, "ERR[EUO]+[R]*: |\\\\n")) %>%
 
     # remove undesirable content from rejection messages
   	mutate(														
@@ -420,20 +432,35 @@ rejectMessages <-
   		comment = str_trim(comment, side = "both"), 			# whitespace padding
   		comment = str_replace(comment, "\\.$", ""), 			# terminal .
   		comment = str_replace(comment, "\\\\n[ \\.]*$", "") 	# terminal \n
-  		)
-
-# compute frequency of each message
-rejectReasonStats <-
-	rejectMessages %>%
-
-    # expand automated reject messages into one observation per reject reason
-    separate_rows(comment, sep = " \\\\n ")	%>%
-
+  		) %>%
+  	
     # determine week from date
     mutate(
         date = as.Date(date, format = "%m/%d/%Y"),
         week = floor_date(ymd(date), unit = "week", 
                           week_start = getOption("lubridate.week.start", 1))) %>%
+
+  	select(interview__id, interview__key, week, date, comment)
+
+# process new rejections (from auto-reject)
+messages_currentRejects <- 
+	autoRejects %>%
+	mutate(
+		date = file.info(paste0(resultsDir, "toReject.dta"))$mtime %>% as.Date(),
+		week = ymd("2019-04-08"), # reportWeekEnd
+		comment = rejectMessage
+		) %>%
+	separate_rows(comment, sep = " \\\\n ") %>%
+	select(interview__id, interview__key, week, date, comment)
+
+# combine rejection messages from past and current rejection taables
+rejectReasons <- full_join(messages_pastRejects, messages_currentRejects, 
+	by = c("interview__id", "interview__key", "week", "date", "comment")) %>%
+	distinct(interview__id, interview__key, week, comment, .keep_all = TRUE)
+
+# compute frequency of each message
+rejectReasonStats <-
+	rejectMessages %>%
 
     # create counts per week
     group_by(comment, week) %>%
