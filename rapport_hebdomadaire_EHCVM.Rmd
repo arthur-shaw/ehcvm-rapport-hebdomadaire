@@ -382,6 +382,7 @@ plotOverTimeTeam(data = rejectStatsSup, displayVar = numRejected, reportStart = 
 # compute rejections per week-interviewer
 rejectStatsInt <- 
 	allRejections %>% 
+	group_by(interviewer, week) %>%
 	summarise(
 		numRejected = sum(hqRejected),
 		numAutoRejected = sum(hqAutoRejected) 
@@ -460,7 +461,7 @@ rejectReasons <- full_join(messages_pastRejects, messages_currentRejects,
 
 # compute frequency of each message
 rejectReasonStats <-
-	rejectMessages %>%
+	rejectReasons %>%
 
     # create counts per week
     group_by(comment, week) %>%
