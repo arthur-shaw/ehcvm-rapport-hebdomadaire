@@ -65,6 +65,13 @@ for (x in c("expectedSample", "numPsuExpected", "numIntExpectedPerPsu")) {
 	}
 }
 
+# report week parameter
+if (!exists("reportWeek") | !(is.na(reportWeek) | is.Date(reportWeek))) {
+	reportWeekClass <- class(reportWeek)
+	stop(paste0("Report week not expected data type. ", 
+		"It should be either NA or a Date, but is ", reportWeekClass))
+}
+
 # folders exist
 for (x in c("rejectProjDir", "reportProjDir", "rawDir")) {
 	if (!exists(x)) {
