@@ -392,17 +392,8 @@ rejectStatsInt <-
 # enquêteurs avec les moyennes les plus élevées
 currentTopOrBottom(data = rejectStatsInt, levelVar = interviewer, performVar = numRejected, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "top")
+	topOrBottom = "top", colNames = colNames)
 
-# comment afficher 
-tableToShow %>%
-arrange(desc(currentVal), numWeeks) %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = '.', big.mark = ',')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
 ```
 
 ### Motifs de rejet
@@ -499,16 +490,8 @@ Enquêteurs avec une valeur moyenne dans la 1ière décile pour la semaine en co
 # enquêteurs avec les moyennes les plus faibles pendant les 2 dernières semaines
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numProdAlim, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
+	topOrBottom = "bottom", colNames = colNames)
 
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = ',', big.mark = '.')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
 ```
 
 ### Calories par personne par jour
@@ -554,17 +537,7 @@ Enquêteurs avec une valeur moyenne dans la 10ième décile pour la semaine en c
 # enquêteurs avec les moyennes les plus élevées
 currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar = totCalories, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "top")
-
-# comment afficher 
-tableToShow %>%
-arrange(desc(currentVal), numWeeks) %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = ',', big.mark = '.')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "top", colNames = colNames)
 ```
 
 Enquêteurs avec une valeur moyenne dans la 1ière décile pour la semaine en cours :
@@ -573,17 +546,9 @@ Enquêteurs avec une valeur moyenne dans la 1ière décile pour la semaine en co
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar = totCalories, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = ',', big.mark = '.')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```
+
 ### Nombre d'items de consommation non-alimentaire
 
 ```{r numNonFoodItemsGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
@@ -595,16 +560,7 @@ plotOverTimeTeam(data = reportData, displayVar = numProdNonAlim, reportStart = r
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numProdNonAlim, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = ',', big.mark = '.')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```
 
 ## Composition du ménage
@@ -620,16 +576,7 @@ plotOverTimeTeam(data = reportData, displayVar = numMembres, reportStart = repor
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numMembres, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = ',', big.mark = '.')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```
 
 ### Pourcentage ménage sous l'âge de 5 ans
@@ -648,16 +595,7 @@ plotOverTimeTeam(data = percSous5Data, displayVar = percSous5, reportStart = rep
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = percSous5Data, levelVar = interviewer, performVar = percSous5, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = ',', big.mark = '.')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```
 
 ## Sources de revenu
@@ -672,16 +610,7 @@ plotOverTimeTeam(data = reportData, displayVar = revenuEmploi, reportStart = rep
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = revenuEmploi, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = ',', big.mark = '.')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```
 
 ### Nombre d'entreprises non-agricoles
@@ -695,16 +624,7 @@ plotOverTimeTeam(data = reportData, displayVar = numEntreprises, reportStart = r
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numEntreprises, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = ',', big.mark = '.')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```
 
 ### Pourcentage dans l'agriculture
@@ -718,16 +638,7 @@ plotOverTimeTeam(data = reportData, displayVar = pratiqueAgriculture, reportStar
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiqueAgriculture, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = '.', big.mark = ',')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```
 
 ### Pourcentage dans l'élevage
@@ -741,16 +652,7 @@ plotOverTimeTeam(data = reportData, displayVar = pratiqueElevage, reportStart = 
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiqueElevage, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = '.', big.mark = ',')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```
 
 ### Pourcentage dans la pêche
@@ -764,14 +666,5 @@ plotOverTimeTeam(data = reportData, displayVar = pratiquePeche, reportStart = re
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiquePeche, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom")
-
-# comment afficher 
-tableToShow %>%
-knitr::kable(
-	digits = 2, 
-	col.names = colNames,
-	format.args = list(decimal.mark = '.', big.mark = ',')
-	) %>%
-kable_styling(bootstrap_options = c("striped"))
+	topOrBottom = "bottom", colNames = colNames)
 ```

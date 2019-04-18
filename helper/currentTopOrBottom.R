@@ -1,5 +1,13 @@
 
-currentTopOrBottom <- function(data, levelVar, performVar, reportStart, reportEnd, topOrBottom = "bottom", wiggleRoom = 1) {
+currentTopOrBottom <- function(
+	data, 						# data frame used for the table
+	levelVar, 					# variable that defines level of reporting (e.g., interviewer, supervisor)
+	performVar, 				# variable whosee values will be measured in the table
+	reportStart, 				# week when report starts
+	reportEnd, 					# week when report ends
+	topOrBottom = "bottom", 	# whether performers in top or bottom of distribution should be shown
+	colNames 					# text for column headers
+	) {
 
 # =============================================================================
 # load necessary libraries
@@ -88,5 +96,14 @@ currentTopOrBottom <- function(data, levelVar, performVar, reportStart, reportEn
 		mutate(diffAvgValOverall = currentVal - avgValOverall) %>%
 		select(!!levelVar, currentVal, avgValInt, diffAvgValOverall, numWeeks) %>%
 		arrange(currentVal, numWeeks)
+
+	tableToShow %>%
+	arrange(desc(currentVal), numWeeks) %>%
+	knitr::kable(
+		digits = 2, 
+		col.names = colNames,
+		format.args = list(decimal.mark = '.', big.mark = ',')
+		) %>%
+	kable_styling(bootstrap_options = c("striped"))	
 
 }
