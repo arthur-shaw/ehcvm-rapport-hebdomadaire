@@ -132,6 +132,10 @@ Sous "sample design", décrire l'échantillon en remplaçant `NA` avec des chiff
 
 # Mode d'emploi
 
+## Générer le rapport standard
+
+Pour créer le rapport :
+
 - Ouvrir RStudio
 - Ouvrir `generateReport.R`
 - Lancer le programme en appuyant sur le bouton `Source` en haut et à droite du programme
@@ -139,6 +143,63 @@ Sous "sample design", décrire l'échantillon en remplaçant `NA` avec des chiff
 - Cliquer sur ce document HTML pour l'ouvrir dans un navigateur web (sans besoin d'internet)
 
 Le rapport aura un nom qui indique la fin de la période du rapport (ou la date de création). Si l'on crée le rapport le 1er avril, il aura le nom `rapport-2019-04-01.html`.
+
+## Ajouter du contenu qui n'est pas créé par le rapport
+
+Pour ajouter du contenu qui n'est pas envisagé par le rapport standard, l'approche est simple, mais diffère légèrement selon que l'on veut intégrer du texte ou des graphiques.
+
+Mais le flux de travail pour le faire, grosso modo, consiste des étapes suivantes:
+
+- Créer le rapport en lançant `generateReport.R`
+- Identifier là où intégrer du contenu supplémentaire
+- Ouvrir le document `rapport_hebdomadiare_EHCVM.Rmd`
+- Ajouter le contenu
+- Sauvegarder `rapport_hebdomadiare_EHCVM.Rmd`
+- Créer le rapport à nouveau en lançant `generateReport.R`
+
+En ce faisant, évitez de toucher aux blocs de code. Dans le document, il y a deux types de blocs. Le premier, trouvé au tout début du document entre `---` et `---`, donne le titre, le sous-titre, et le format du document. Les second, semé tout au long du document, contient des syntaxes R pour transformer des données, créer des graphiques, et afficher des tableaux. Ces blocs se trouvent entre les clôtures du sytle suivant :
+
+````
+```{r numIntCompleted, echo = FALSE, warning = FALSE, message = FALSE}
+
+# le nom numIntCompleted indique le nom interne du bloc
+
+# les options pour comment gérer le produit du bloc sont indiquées par la suite
+# par exemple, message = FALSE empêche l'affichage dans le document de
+# messages affichés lors de l'exécution du code
+
+```
+````
+
+Pour chaque type, veuillez ne pas toucher au contenu. Sinon, on peut créer des problèmes avec le rapport qui peuvent être difficiles à résoudre. 
+
+## Du texte
+
+Pour ajouter du texte, il suffit de 
+
+- Choisir le type de text
+- Composer le texte
+- Ajouter la syntaxe nécessaire pour obtenir l'affichage voulu
+
+Pour l'essentiel, il y a trois types de textes:
+
+1. Texte simple
+2. Texte dans une liste
+3. Texte des titres de section
+
+Pour le premier, le texte est écrit comme il apparaît sur le papier. Pour le second type, il suffit de taper `-` devant chaque élément de la liste (ou un chiffre pour les listes chiffrées). Pour le troisième le nombre de `#` indique l'importance du titre de section: `#` indique un titre de premier plan (H1 en Word ou `<h1>` en HTML),  `##` indique un titre de second plan (H2 en Word ou `<h2>` en HTML), et ainsi de suite. 
+
+Pour en savoir plus, lire [ici](https://bookdown.org/yihui/rmarkdown/markdown-syntax.html)
+
+## Des graphiques
+
+Pour ajouter des graphiques, la démarche consiste à
+
+- Créer la graphique avec des outils externes (e.g., Stata)
+- Sauvegarder la graphique comme image (e.g., format PNG, JPEG, etc.)
+- Créer un lien vers l'image dans le document 
+
+Pour en savoir plus, lire le troisième paragraphe [ici](https://bookdown.org/yihui/rmarkdown/markdown-syntax.html#inline-formatting) et l'explication plus détaillée [ici](https://pandoc.org/MANUAL.html#images) 
 
 # Dépannage
 
