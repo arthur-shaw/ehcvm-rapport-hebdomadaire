@@ -292,7 +292,6 @@ ggplot(reasonsNonResponse, aes(x = motif, y = pcnt, fill = motif)) +
       legend.position="none",
       plot.title = element_text(size=14),
     ) +
-    ylim(0,100) +
     xlab("") +
     ylab("")
 ```
