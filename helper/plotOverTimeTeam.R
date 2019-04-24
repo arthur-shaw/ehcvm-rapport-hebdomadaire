@@ -1,5 +1,14 @@
 
-plotOverTimeTeam <- function(data, displayVar, reportStart, reportEnd, titleText, xText, yText) {
+plotOverTimeTeam <- function(
+	data, 
+	displayVar, 
+	outputPath = NA, 
+	reportStart, 
+	reportEnd, 
+	titleText, 
+	xText, 
+	yText
+	) {
 
 # =============================================================================
 # load necessary libraries
@@ -104,5 +113,18 @@ plotOverTimeTeam <- function(data, displayVar, reportStart, reportEnd, titleText
 			facet_wrap(~supervisor)	
 
 	}
+
+# =============================================================================
+# Export graph data
+# =============================================================================
+
+	if (!is.na(outputPath)) {
+
+		dataToGraph %>%
+		select(supervisor, avgVal, week) %>%
+		write_dta(path = outputPath, version = stataVersion)
+		
+	}
+
 
 }

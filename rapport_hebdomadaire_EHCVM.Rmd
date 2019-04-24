@@ -243,6 +243,8 @@ nonResponseByTeam <-
 	select(supervisor, nonResponseRate) %>%
 	arrange(desc(nonResponseRate))
 
+write_dta(data = nonResponseByTeam, path = paste0(reportProjDir, "/figureData/", "nonResponseByTeam.dta"))
+
 nonResponseByTeam %>%
 head(10) %>%
 knitr::kable(
@@ -310,7 +312,11 @@ replacements <-
 	ungroup() %>%
 	arrange(week, supervisor)
 
-plotOverTimeTeam(data = replacements, displayVar = numReplacements, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+write_dta(data = replacements, path = paste0(reportProjDir, "/figureData/", "replacements.dta"))
+
+plotOverTimeTeam(data = replacements, displayVar = numReplacements, 
+	outputPath = paste0(reportProjDir, "/figureData/", "replacementsGraph.dta"), 
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")	
 ```
 
@@ -371,8 +377,12 @@ rejectStatsSup <-
 		) %>%
 	ungroup()
 
+write_dta(data = rejectStatsSup, path = paste0(reportProjDir, "/figureData/", "rejectStatsSup.dta"))
+
 # plot rejections by supervisor
-plotOverTimeTeam(data = rejectStatsSup, displayVar = numRejected, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = rejectStatsSup, displayVar = numRejected, 
+	outputPath = paste0(reportProjDir, "/figureData/", "rejectStatsSup.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
@@ -387,6 +397,8 @@ rejectStatsInt <-
 		numAutoRejected = sum(hqAutoRejected) 
 		) %>%
 	ungroup()
+
+write_dta(data = rejectStatsInt, path = paste0(reportProjDir, "/figureData/", "rejectStatsInt.dta"))
 
 # enquêteurs avec les moyennes les plus élevées
 currentTopOrBottom(data = rejectStatsInt, levelVar = interviewer, performVar = numRejected, 
@@ -457,6 +469,8 @@ rejectReasonStats <-
     group_by(comment, week) %>%
     summarise(numReason = n())	
 
+write_dta(data = rejectReasonStats, path = paste0(reportProjDir, "/figureData/", "rejectReasonStats.dta"))
+
 # display table of top 10 rejection reasons for the report week
 rejectReasonStats %>%
 filter(week == reportWeekEnd) %>%
@@ -479,7 +493,9 @@ kable_styling(bootstrap_options = c("striped"))
 
 ```{r numFoodItemsGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 # graphique
-plotOverTimeTeam(data = reportData, displayVar = numProdAlim, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = reportData, displayVar = numProdAlim, 
+	outputPath = paste0(reportProjDir, "/figureData/", "numFoodItemsGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
@@ -551,7 +567,9 @@ currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar 
 ### Nombre d'items de consommation non-alimentaire
 
 ```{r numNonFoodItemsGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-plotOverTimeTeam(data = reportData, displayVar = numProdNonAlim, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = reportData, displayVar = numProdNonAlim, 
+	outputPath = paste0(reportProjDir, "/figureData/", "numNonFoodItemsGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
@@ -567,7 +585,9 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numPr
 ### Taille du ménage
 
 ```{r hhsizeGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-plotOverTimeTeam(data = reportData, displayVar = numMembres, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = reportData, displayVar = numMembres, 
+	outputPath = paste0(reportProjDir, "/figureData/", "hhsizeGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
@@ -586,7 +606,9 @@ percSous5Data <- reportData %>%
 	mutate(percSous5 = 100 * (numMemSous5 / numMembres)) %>%
 	drop_na(percSous5)
 
-plotOverTimeTeam(data = percSous5Data, displayVar = percSous5, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = percSous5Data, displayVar = percSous5, 
+	outputPath = paste0(reportProjDir, "/figureData/", "numUnder5Graph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
@@ -601,7 +623,9 @@ currentTopOrBottom(data = percSous5Data, levelVar = interviewer, performVar = pe
 
 ### Pourcentage avec au moins un salairé
 ```{r hasSalaryGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-plotOverTimeTeam(data = reportData, displayVar = revenuEmploi, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = reportData, displayVar = revenuEmploi, 
+	outputPath = paste0(reportProjDir, "/figureData/", "hasSalaryGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
@@ -615,7 +639,9 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = reven
 ### Nombre d'entreprises non-agricoles
 
 ```{r numEnterpriseGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-plotOverTimeTeam(data = reportData, displayVar = numEntreprises, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = reportData, displayVar = numEntreprises, 
+	outputPath = paste0(reportProjDir, "/figureData/", "numEnterpriseGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
@@ -629,7 +655,9 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numEn
 ### Pourcentage dans l'agriculture
 
 ```{r doesAgricGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-plotOverTimeTeam(data = reportData, displayVar = pratiqueAgriculture, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = reportData, displayVar = pratiqueAgriculture, 
+	outputPath = paste0(reportProjDir, "/figureData/", "doesAgricGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
@@ -643,7 +671,9 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = prati
 ### Pourcentage dans l'élevage
 
 ```{r doesLivestockGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-plotOverTimeTeam(data = reportData, displayVar = pratiqueElevage, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = reportData, displayVar = pratiqueElevage, 
+	outputPath = paste0(reportProjDir, "/figureData/", "doesLivestockGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
@@ -657,7 +687,9 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = prati
 ### Pourcentage dans la pêche
 
 ```{r doesFisheriesGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-plotOverTimeTeam(data = reportData, displayVar = pratiquePeche, reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+plotOverTimeTeam(data = reportData, displayVar = pratiquePeche, 
+	outputPath = paste0(reportProjDir, "/figureData/", "doesFisheriesGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
