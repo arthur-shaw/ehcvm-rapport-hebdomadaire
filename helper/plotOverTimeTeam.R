@@ -21,7 +21,8 @@ plotOverTimeTeam <- function(
 		"lubridate", # to handle reporting dates and intervals
 		"ggplot2",	# to graph plots
 		"hrbrthemes", # to have a clean graph theme
-		"viridis" 	# to have color-blind-friendly colors
+		"viridis", 	# to have color-blind-friendly colors
+		"haven" 	# to save figure data to Stata format
 	)
 
 	# identify and install those packages that are not already installed
