@@ -46,9 +46,21 @@ plotOverTimeTeam <- function(
 		filter(week %within% interval(reportStart, reportEnd)) %>% 
 		# compute average over supervisor-week 
 		group_by(supervisor, week) %>%
-		summarise(avgVal = mean(!!displayVar)) %>%
+		summarise(avgVal = mean(!!displayVar, na.rm = TRUE)) %>%
 		mutate(supervisor2 = supervisor) %>%
 		ungroup()
+
+# =============================================================================
+# Export graph data
+# =============================================================================
+
+	if (!is.na(outputPath)) {
+
+		dataToGraph %>%
+		select(supervisor, avgVal, week) %>%
+		write_dta(path = outputPath, version = stataVersion)
+		
+	}
 
 # =============================================================================
 # Create plots
@@ -70,7 +82,7 @@ plotOverTimeTeam <- function(
 	    	supervisor = factor(rank, labels = supervisor))
 
 	    # compute overall median (from interview-level data)
-	    overallAvg <- data %>% summarize(overallMed = mean(!!displayVar)) %>% as.numeric()
+	    overallAvg <- data %>% summarize(overallMed = mean(!!displayVar, na.rm = TRUE)) %>% as.numeric()
 
 		ggplot(data = dataToGraph, aes(x = supervisor, y = avgVal)) +
 			# lollipops for supervisor levels
@@ -97,6 +109,9 @@ plotOverTimeTeam <- function(
 				aes(group=supervisor2), color="grey", size=0.5, alpha=0.5) +
 			# sketch line for current supervisor in separate color
 			geom_line( aes(color=supervisor), color="#69b3a2", size=1.2 ) +
+			geom_point( aes(color=supervisor), color="#69b3a2", size=1.5 ) +
+			geom_text( aes(color=supervisor, label = round(avgVal, digits = 1)), color="#69b3a2", 
+				nudge_y = (max(dataToGraph$avgVal) - min(dataToGraph$avgVal))*0.2, size = 3) +
 			scale_color_viridis(discrete = TRUE) +
 			# theme_ipsum() +
 			theme(
@@ -114,18 +129,5 @@ plotOverTimeTeam <- function(
 			facet_wrap(~supervisor)	
 
 	}
-
-# =============================================================================
-# Export graph data
-# =============================================================================
-
-	if (!is.na(outputPath)) {
-
-		dataToGraph %>%
-		select(supervisor, avgVal, week) %>%
-		write_dta(path = outputPath, version = stataVersion)
-		
-	}
-
 
 }
