@@ -81,13 +81,7 @@ interviewInfo <- actions %>%
 reportData <- reportData %>%
 	mutate(
 		# total non-food items
-		numProdNonAlim = 
-			numProdNonAlim_fetes	+
-			numProdNonAlim_7j		+
-			numProdNonAlim_30j		+
-			numProdNonAlim_3m		+
-			numProdNonAlim_6m		+
-			numProdNonAlim_12m)
+		numProdNonAlim = rowSums(select(., starts_with("numProdNonAlim_")), na.rm = TRUE))
 
 # -----------------------------------------------------------------------------
 # Household level
@@ -177,14 +171,14 @@ completedPsu <-
 		psuComplete = numIntCompletedPsu >= numIntExpectedPerPsu,
 		psuIncomplete = numIntCompletedPsu < numIntExpectedPerPsu) %>%
 	summarise(
-		numPsuComplete = sum(psuComplete),
-		numPsuIncomplete = sum(psuIncomplete)
+		numPsuComplete = sum(psuComplete, na.rm = TRUE),
+		numPsuIncomplete = sum(psuIncomplete, na.rm = TRUE)
 		) %>%
 	mutate(numToComplete = numPsuExpected - (numPsuComplete + numPsuIncomplete))
 ```
 
 - **Ménages.** Enquêté `r collectedSample` ménages--soit `r round(percentCollected, digits = 2)`% de l'échantillon.
-- **DRs.** Clôturé `r completedPsu$numPsuComplete` DR et entamé `r completedPsu$numPsuIncomplete`--soit `r 100*(completedPsu$numPsuComplete/numPsuExpected)`% des DR clotûrés, et `r 100*(completedPsu$numPsuIncomplete/numPsuExpected)`% entamé, respectivement.
+- **DRs.** Clôturé `r completedPsu$numPsuComplete` DR et entamé `r completedPsu$numPsuIncomplete`--soit `r round(100*(completedPsu$numPsuComplete/numPsuExpected), digits = 2)`% des DR clotûrés, et `r round(100*(completedPsu$numPsuIncomplete/numPsuExpected), digits = 2)`% entamé, respectivement.
 
 ## Non-réponse
 
@@ -204,8 +198,8 @@ nonResponseOverall <-
 		) %>%
 	select(completedInterview, attemptedInterview) %>%
 	summarise(
-		numCompleted = sum(completedInterview), 
-		numAttempted = sum(attemptedInterview)) %>%
+		numCompleted = sum(completedInterview, na.rm = TRUE), 
+		numAttempted = sum(attemptedInterview, na.rm = TRUE)) %>%
 	mutate(nonResponseRate = 
 		100 * (1 - (numCompleted / numAttempted)))
 ```
@@ -235,8 +229,8 @@ nonResponseByTeam <-
 	filter(week %within% rankPeriod) %>%
 	group_by(supervisor) %>%
 	summarise(
-		numCompleted = sum(completedInterview), 
-		numAttempted = sum(attemptedInterview)) %>%
+		numCompleted = sum(completedInterview, na.rm = TRUE), 
+		numAttempted = sum(attemptedInterview, na.rm = TRUE)) %>%
 	ungroup() %>%
 	mutate(nonResponseRate = 
 		100 * (1 - (numCompleted / numAttempted))) %>%
@@ -272,9 +266,9 @@ reasonsNonResponse <-
 		vacant = (s00q09 == 3)
 		) %>%
 	summarise(
-		abandon = sum(abandon),
-		refus = sum(refus),
-		vacant = sum(vacant),
+		abandon = sum(abandon, na.rm = TRUE),
+		refus = sum(refus, na.rm = TRUE),
+		vacant = sum(vacant, na.rm = TRUE),
 		total = n()
 		) %>%
 	mutate(
@@ -372,8 +366,8 @@ rejectStatsSup <-
 	allRejections %>%
 	group_by(supervisor, week) %>%
 	summarise(
-		numRejected = sum(hqRejected),
-		numAutoRejected = sum(hqAutoRejected) 
+		numRejected = sum(hqRejected, na.rm = TRUE),
+		numAutoRejected = sum(hqAutoRejected, na.rm = TRUE) 
 		) %>%
 	ungroup()
 
@@ -393,8 +387,8 @@ rejectStatsInt <-
 	allRejections %>% 
 	group_by(interviewer, week) %>%
 	summarise(
-		numRejected = sum(hqRejected),
-		numAutoRejected = sum(hqAutoRejected) 
+		numRejected = sum(hqRejected, na.rm = TRUE),
+		numAutoRejected = sum(hqAutoRejected, na.rm = TRUE) 
 		) %>%
 	ungroup()
 
@@ -460,6 +454,9 @@ messages_currentRejects <-
 rejectReasons <- full_join(messages_pastRejects, messages_currentRejects, 
 	by = c("interview__id", "interview__key", "week", "date", "comment")) %>%
 	distinct(interview__id, interview__key, week, comment, .keep_all = TRUE)
+
+# combine all "N questions left unanswered" into a single error message
+rejectReasons <- mutate(rejectReasons, comment = str_replace(comment, "[0-9]+ questions ont", "XX questions ont"))
 
 # compute frequency of each message
 rejectReasonStats <-
