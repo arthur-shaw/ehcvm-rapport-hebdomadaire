@@ -54,7 +54,7 @@ currentTopOrBottom <- function(
 		data %>%
 		filter(week %within% rankPeriod) %>%
 		group_by(!!levelVar, week) %>% 
-			summarise(currentVal = mean(!!performVar)) %>% ungroup() %>% 
+			summarise(currentVal = mean(!!performVar, na.rm = TRUE)) %>% ungroup() %>% 
 		group_by(week) %>%
 		arrange(week, currentVal) %>%
 		mutate(
@@ -80,11 +80,11 @@ currentTopOrBottom <- function(
 
 	avgVals <- data %>%
 		filter(week %within% rankPeriod) %>% 
-		mutate(avgValOverall = mean(!!performVar)) %>%
+		mutate(avgValOverall = mean(!!performVar, na.rm = TRUE)) %>%
 		group_by(!!levelVar) %>%
 		summarise(
-			avgValInt = mean(!!performVar),
-			avgValOverall = mean(avgValOverall)) %>%
+			avgValInt = mean(!!performVar, na.rm = TRUE),
+			avgValOverall = mean(avgValOverall, na.rm = TRUE)) %>%
 		ungroup() %>%
 		select(!!levelVar, avgValInt, avgValOverall)	
 
