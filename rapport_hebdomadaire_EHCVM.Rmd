@@ -81,7 +81,8 @@ interviewInfo <- actions %>%
 reportData <- reportData %>%
 	mutate(
 		# total non-food items
-		numProdNonAlim = rowSums(select(., starts_with("numProdNonAlim_")), na.rm = TRUE))
+		numProdNonAlim = rowSums(select(., starts_with("numProdNonAlim_")), na.rm = TRUE),
+		percParcellesNotMeasured = 100 * (numParcellesNotMeasured/numParcelles))
 
 # -----------------------------------------------------------------------------
 # Household level
@@ -695,4 +696,22 @@ plotOverTimeTeam(data = reportData, displayVar = pratiquePeche,
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiquePeche, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
 	topOrBottom = "bottom", colNames = colNames)
+```
+
+## Agriculture
+
+### Pourcentage de parcelles non mesurées
+
+```{r plotsNotMeasuredGraph , echo = FALSE, warning = FALSE, message = FALSE}
+plotOverTimeTeam(data = filter(reportData, is.finite(percParcellesNotMeasured)), displayVar = percParcellesNotMeasured, 
+	outputPath = paste0(reportProjDir, "/figureData/", "plotsNotMeasuredGraph.dta"),
+	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
+	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
+```
+
+```{r plotsNotMeasuredTable , echo = FALSE, warning = FALSE, message = FALSE}
+# enquêteurs avec les moyennes les plus faibles
+currentTopOrBottom(data = filter(reportData, is.finite(percParcellesNotMeasured)), levelVar = interviewer, performVar = percParcellesNotMeasured, 
+	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
+	topOrBottom = "top", colNames = colNames)
 ```
