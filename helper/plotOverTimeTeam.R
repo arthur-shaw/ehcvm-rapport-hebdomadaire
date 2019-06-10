@@ -103,17 +103,26 @@ plotOverTimeTeam <- function(
 	# plot a line graph for more than 1 week
 	} else if (numWeeksCovered > 1) {
 
+		dataToAnnotate = filter(dataToGraph, week %within% interval(reportEnd - weeks(2), reportEnd))
+
 		ggplot(data = dataToGraph, aes(x=week, y=avgVal)) +
 			# sketch lines for all supervisors as background grey
 			geom_line( data= dataToGraph %>% select(-supervisor), 
 				aes(group=supervisor2), color="grey", size=0.5, alpha=0.5) +
 			# sketch line for current supervisor in separate color
 			geom_line( aes(color=supervisor), color="#69b3a2", size=1.2 ) +
+			# plot points for observations
 			geom_point( aes(color=supervisor), color="#69b3a2", size=1.5 ) +
-			geom_text( aes(color=supervisor, label = round(avgVal, digits = 1)), color="#69b3a2", 
-				nudge_y = (max(dataToGraph$avgVal) - min(dataToGraph$avgVal))*0.2, size = 3) +
+			# show values of last 3 weeks as text 
+			geom_text(data = dataToAnnotate, 
+				aes(color=supervisor, label = round(avgVal, digits = 1)), 
+				color="#183d38", fontface = "bold",
+				# put text above points
+				nudge_y = (max(dataToGraph$avgVal) - min(dataToGraph$avgVal))*0.2, size = 4,
+				# move points on vertical and horizontal borders inward
+				vjust="inward", hjust="inward"
+				) +
 			scale_color_viridis(discrete = TRUE) +
-			# theme_ipsum() +
 			theme(
 				legend.position="none",
 				plot.title = element_text(size=14),
