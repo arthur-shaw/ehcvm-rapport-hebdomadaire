@@ -438,9 +438,12 @@ messages_pastRejects <-
   		comment = str_replace(comment, "Your comment ", ""),	# more starting strange content
   		comment = str_trim(comment, side = "both"), 			# whitespace padding
   		comment = str_replace(comment, "\\.$", ""), 			# terminal .
-  		comment = str_replace(comment, "\\\\n[ \\.]*$", "") 	# terminal \n
+  		comment = str_replace(comment, "\\n[ \\.]*$", "") 		# terminal \n
   		) %>%
   	
+  	# expand comments into their component issues
+	separate_rows(comment, sep = " \\n ") %>%
+
     # determine week from date
     mutate(
         date = as.Date(date, format = "%m/%d/%Y"),
@@ -457,7 +460,7 @@ messages_currentRejects <-
 		week = reportWeekEnd,
 		comment = rejectMessage
 		) %>%
-	separate_rows(comment, sep = " \\\\n ") %>%
+	separate_rows(comment, sep = " \\n ") %>%
 	select(interview__id, interview__key, week, date, comment)
 
 # combine rejection messages from past and current rejection taables
