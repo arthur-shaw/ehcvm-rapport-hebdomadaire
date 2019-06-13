@@ -8,6 +8,12 @@ output:
 
 ```{r, setup, include = FALSE}
 
+# set global chunk options
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE,
+                      message = FALSE,
+                      out.width = '100%')
+
 # =============================================================================
 # load necessary libraries
 # =============================================================================
@@ -117,6 +123,9 @@ source(paste0(reportProjDir, "helper/", "plotOverTimeTeam.R"))
 # create table of top/bottom values
 source(paste0(reportProjDir, "helper/", "currentTopOrBottom.R"))
 
+# create table of biggest positive/negative changes
+source(paste0(reportProjDir, "helper/", "currentBiggestChange.R"))
+
 # =============================================================================
 # set report period
 # =============================================================================
@@ -141,7 +150,7 @@ colNames <- c(
 
 ## Progression
 
-```{r numIntCompleted, echo = FALSE, warning = FALSE, message = FALSE}
+```{r numIntCompleted}
 statusesComplete <- c(65, 100, 120, 125, 130)
 
 collectedSample <- 
@@ -157,7 +166,7 @@ collectedSample <-
 percentCollected <- 100 * (collectedSample / expectedSample)
 ```
 
-```{r numPsuCompleted, echo = FALSE, warning = FALSE, message = FALSE}
+```{r numPsuCompleted}
 completedPsu <- 
 	hholdData %>% 
 	mutate(completedInterview = 
@@ -183,7 +192,7 @@ completedPsu <-
 
 ## Non-réponse
 
-```{r nonResponse, echo = FALSE, warning = FALSE, message = FALSE}
+```{r nonResponse}
 statusesComplete <- c(65, 100, 120, 125, 130)
 nonResponseOverall <- 
 	hholdData %>%
@@ -209,7 +218,7 @@ Le taux global de non-réponse est `r round(nonResponseOverall$nonResponseRate, 
 
 Les enquêteurs avec les taux de non-réponse les plus élevés : 
 
-```{r nonResponseTable, echo = FALSE, warning = FALSE, message = FALSE}
+```{r nonResponseTable}
 
 rankPeriod = interval(reportWeekStart, reportWeekEnd)
 
@@ -252,7 +261,7 @@ kable_styling(bootstrap_options = c("striped"))
 
 Motifs de non-réponse
 
-```{r reasonsNonResponse, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r reasonsNonResponse, fig.align = "center"}
 reasonsNonResponse <- 
 	hholdData %>%
 	select(interview__id, s00q08, s00q09) %>%
@@ -295,7 +304,7 @@ ggplot(reasonsNonResponse, aes(x = motif, y = pcnt, fill = motif)) +
 
 ## Remplacement
 
-```{r replacementsGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r replacementsGraph, fig.align = "center"}
 replacements <-
 	hholdData %>%
 	filter(interview__status %in% statusesComplete) %>%
@@ -321,7 +330,7 @@ plotOverTimeTeam(data = replacements, displayVar = numReplacements,
 
 ### Fréquence de rejet
 
-```{r numRejectsGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r numRejectsGraph, fig.align = "center"}
 # define rejections
 rejectActions <- c(7, 8)
 
@@ -381,7 +390,7 @@ plotOverTimeTeam(data = rejectStatsSup, displayVar = numRejected,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
-```{r numRejectsTable, echo = FALSE, warning = FALSE, message = FALSE}
+```{r numRejectsTable}
 
 # compute rejections per week-interviewer
 rejectStatsInt <- 
@@ -406,7 +415,7 @@ currentTopOrBottom(data = rejectStatsInt, levelVar = interviewer, performVar = n
 
 Les motifs de rejet les plus fréquents pour la semaine du rapport :
 
-```{r numRejectReasonTable, echo = FALSE, warning = FALSE, message = FALSE}
+```{r numRejectReasonTable}
 
 # process past rejections
 messages_pastRejects <- 
@@ -489,7 +498,7 @@ kable_styling(bootstrap_options = c("striped"))
 
 Évolution par équipe : 
 
-```{r numFoodItemsGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r numFoodItemsGraph, fig.align = "center"}
 # graphique
 plotOverTimeTeam(data = reportData, displayVar = numProdAlim, 
 	outputPath = paste0(reportProjDir, "/figureData/", "numFoodItemsGraph.dta"),
@@ -499,7 +508,7 @@ plotOverTimeTeam(data = reportData, displayVar = numProdAlim,
 
 Enquêteurs avec une valeur moyenne dans la 1ière décile pour la semaine en cours :
 
-```{r numFoodItemsTable, echo = FALSE, warning = FALSE, message = FALSE}
+```{r numFoodItemsTable}
 # enquêteurs avec les moyennes les plus faibles pendant les 2 dernières semaines
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numProdAlim, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -510,7 +519,7 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numPr
 ### Calories par personne par jour
 Évolution des calories par personne par jour :
 
-```{r caloriesGraph, echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r caloriesGraph, fig.align = "center"}
 
 # filter down reporting period
 caloriesForReport <- caloriesByDate %>%
@@ -546,7 +555,7 @@ xlab("Semaine de collecte")
 
 Enquêteurs avec une valeur moyenne dans la 10ième décile pour la semaine en cours :
 
-```{r caloriesTableHigh, echo = FALSE, warning = FALSE, message = FALSE}
+```{r caloriesTableHigh}
 # enquêteurs avec les moyennes les plus élevées
 currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar = totCalories, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -555,7 +564,7 @@ currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar 
 
 Enquêteurs avec une valeur moyenne dans la 1ière décile pour la semaine en cours :
 
-```{r caloriesTableLow, echo = FALSE, warning = FALSE, message = FALSE}
+```{r caloriesTableLow}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar = totCalories, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -564,14 +573,14 @@ currentTopOrBottom(data = caloriesForReport, levelVar = interviewer, performVar 
 
 ### Nombre d'items de consommation non-alimentaire
 
-```{r numNonFoodItemsGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r numNonFoodItemsGraph, fig.align = "center"}
 plotOverTimeTeam(data = reportData, displayVar = numProdNonAlim, 
 	outputPath = paste0(reportProjDir, "/figureData/", "numNonFoodItemsGraph.dta"),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
-```{r numNonFoodItemsTable , echo = FALSE, warning = FALSE, message = FALSE}
+```{r numNonFoodItemsTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numProdNonAlim, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -582,14 +591,14 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numPr
 
 ### Taille du ménage
 
-```{r hhsizeGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r hhsizeGraph, fig.align = "center"}
 plotOverTimeTeam(data = reportData, displayVar = numMembres, 
 	outputPath = paste0(reportProjDir, "/figureData/", "hhsizeGraph.dta"),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
-```{r hhsizeTable , echo = FALSE, warning = FALSE, message = FALSE}
+```{r hhsizeTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numMembres, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -598,7 +607,7 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numMe
 
 ### Pourcentage ménage sous l'âge de 5 ans
 
-```{r under5Graph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r under5Graph, fig.align = "center"}
 percSous5Data <- reportData %>%
 	select(interview__id, interview__key, supervisor, interviewer, numMemSous5, numMembres, week) %>%
 	mutate(percSous5 = 100 * (numMemSous5 / numMembres)) %>%
@@ -610,7 +619,7 @@ plotOverTimeTeam(data = percSous5Data, displayVar = percSous5,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
-```{r under5Table , echo = FALSE, warning = FALSE, message = FALSE}
+```{r under5Table}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = percSous5Data, levelVar = interviewer, performVar = percSous5, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -620,14 +629,14 @@ currentTopOrBottom(data = percSous5Data, levelVar = interviewer, performVar = pe
 ## Sources de revenu
 
 ### Pourcentage avec au moins un salairé
-```{r hasSalaryGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r hasSalaryGraph, fig.align = "center"}
 plotOverTimeTeam(data = reportData, displayVar = revenuEmploi, 
 	outputPath = paste0(reportProjDir, "/figureData/", "hasSalaryGraph.dta"),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
-```{r hasSalaryTable , echo = FALSE, warning = FALSE, message = FALSE}
+```{r hasSalaryTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = revenuEmploi, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -636,14 +645,14 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = reven
 
 ### Nombre d'entreprises non-agricoles
 
-```{r numEnterpriseGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r numEnterpriseGraph, fig.align = "center"}
 plotOverTimeTeam(data = reportData, displayVar = numEntreprises, 
 	outputPath = paste0(reportProjDir, "/figureData/", "numEnterpriseGraph.dta"),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
-```{r numEnterpriseTable , echo = FALSE, warning = FALSE, message = FALSE}
+```{r numEnterpriseTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numEntreprises, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -652,14 +661,14 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numEn
 
 ### Pourcentage dans l'agriculture
 
-```{r doesAgricGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r doesAgricGraph, fig.align = "center"}
 plotOverTimeTeam(data = reportData, displayVar = pratiqueAgriculture, 
 	outputPath = paste0(reportProjDir, "/figureData/", "doesAgricGraph.dta"),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
-```{r doesAgricTable , echo = FALSE, warning = FALSE, message = FALSE}
+```{r doesAgricTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiqueAgriculture, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -668,14 +677,14 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = prati
 
 ### Pourcentage dans l'élevage
 
-```{r doesLivestockGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r doesLivestockGraph, fig.align = "center"}
 plotOverTimeTeam(data = reportData, displayVar = pratiqueElevage, 
 	outputPath = paste0(reportProjDir, "/figureData/", "doesLivestockGraph.dta"),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
-```{r doesLivestockTable , echo = FALSE, warning = FALSE, message = FALSE}
+```{r doesLivestockTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiqueElevage, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -684,14 +693,14 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = prati
 
 ### Pourcentage dans la pêche
 
-```{r doesFisheriesGraph , echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r doesFisheriesGraph, fig.align = "center"}
 plotOverTimeTeam(data = reportData, displayVar = pratiquePeche, 
 	outputPath = paste0(reportProjDir, "/figureData/", "doesFisheriesGraph.dta"),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
-```{r doesFisheriesTable , echo = FALSE, warning = FALSE, message = FALSE}
+```{r doesFisheriesTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiquePeche, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
@@ -702,14 +711,14 @@ currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = prati
 
 ### Pourcentage de parcelles non mesurées
 
-```{r plotsNotMeasuredGraph , echo = FALSE, warning = FALSE, message = FALSE}
+```{r plotsNotMeasuredGraph}
 plotOverTimeTeam(data = filter(reportData, is.finite(percParcellesNotMeasured)), displayVar = percParcellesNotMeasured, 
 	outputPath = paste0(reportProjDir, "/figureData/", "plotsNotMeasuredGraph.dta"),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
-```{r plotsNotMeasuredTable , echo = FALSE, warning = FALSE, message = FALSE}
+```{r plotsNotMeasuredTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = filter(reportData, is.finite(percParcellesNotMeasured)), levelVar = interviewer, performVar = percParcellesNotMeasured, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
