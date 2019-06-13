@@ -324,6 +324,13 @@ plotOverTimeTeam(data = replacements, displayVar = numReplacements,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")	
 ```
 
+Les équipes avec les hausses les plus importantes depuis la semaine dernière :
+
+```{r supReplacementsTable}
+currentBiggestChange(data = replacements, levelVar = supervisor, performVar = numReplacements,
+	reportEnd = reportWeekEnd, topOrBottom = "top", colNames = c("Équipe", "% changement"))
+```
+
 # Qualité des données
 
 ## Rejet
@@ -390,6 +397,15 @@ plotOverTimeTeam(data = rejectStatsSup, displayVar = numRejected,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
+Les équipes avec les hausses les plus importantes depuis la semaine dernière: 
+
+```{r numSupRejectsTable}
+currentBiggestChange(data = rejectStatsSup, levelVar = supervisor, performVar = numRejected,
+	reportEnd = reportWeekEnd, topOrBottom = "top", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus important cette semaine : 
+
 ```{r numRejectsTable}
 
 # compute rejections per week-interviewer
@@ -413,7 +429,7 @@ currentTopOrBottom(data = rejectStatsInt, levelVar = interviewer, performVar = n
 
 ### Motifs de rejet
 
-Les motifs de rejet les plus fréquents pour la semaine du rapport :
+Les motifs de rejet les plus fréquents pour cette semaine :
 
 ```{r numRejectReasonTable}
 
@@ -499,8 +515,6 @@ kable_styling(bootstrap_options = c("striped"))
 
 ### Nombre d'items de consommation alimentaire
 
-Évolution par équipe : 
-
 ```{r numFoodItemsGraph, fig.align = "center"}
 # graphique
 plotOverTimeTeam(data = reportData, displayVar = numProdAlim, 
@@ -509,7 +523,14 @@ plotOverTimeTeam(data = reportData, displayVar = numProdAlim,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
-Enquêteurs avec une valeur moyenne dans la 1ière décile pour la semaine en cours :
+Les équipes avec les baisses les plus importantes (ou les hausses les plus modestes) depuis la semaine dernière :
+
+```{r numSupFoodItemsTable}
+currentBiggestChange(data = reportData, levelVar = supervisor, performVar = numProdAlim,
+	reportEnd = reportWeekEnd, topOrBottom = "bottom", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus faibles cette semaine : 
 
 ```{r numFoodItemsTable}
 # enquêteurs avec les moyennes les plus faibles pendant les 2 dernières semaines
@@ -583,6 +604,15 @@ plotOverTimeTeam(data = reportData, displayVar = numProdNonAlim,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
+Les équipes avec les baisses les plus importantes (ou les hausses les plus modestes) depuis la semaine dernière :
+
+```{r numSupNonFoodItemsTable}
+currentBiggestChange(data = reportData, levelVar = supervisor, performVar = numProdNonAlim,
+	reportEnd = reportWeekEnd, topOrBottom = "bottom", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus faibles cette semaine : 
+
 ```{r numNonFoodItemsTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numProdNonAlim, 
@@ -600,6 +630,15 @@ plotOverTimeTeam(data = reportData, displayVar = numMembres,
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
+
+Les équipes avec les baisses les plus importantes (ou les hausses les plus modestes) depuis la semaine dernière :
+
+```{r supHhsizeTable}
+currentBiggestChange(data = reportData, levelVar = supervisor, performVar = numMembres,
+	reportEnd = reportWeekEnd, topOrBottom = "bottom", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus faibles cette semaine : 
 
 ```{r hhsizeTable}
 # enquêteurs avec les moyennes les plus faibles
@@ -622,11 +661,20 @@ plotOverTimeTeam(data = percSous5Data, displayVar = percSous5,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
+Les équipes avec les hausses les plus importantes depuis la semaine dernière :
+
+```{r supUnder5Table}
+currentBiggestChange(data = percSous5Data, levelVar = supervisor, performVar = percSous5,
+	reportEnd = reportWeekEnd, topOrBottom = "top", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus importants cette semaine : 
+
 ```{r under5Table}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = percSous5Data, levelVar = interviewer, performVar = percSous5, 
 	reportStart = reportWeekEnd - weeks(3), reportEnd = reportWeekEnd, 
-	topOrBottom = "bottom", colNames = colNames)
+	topOrBottom = "top", colNames = colNames)
 ```
 
 ## Sources de revenu
@@ -638,6 +686,15 @@ plotOverTimeTeam(data = reportData, displayVar = revenuEmploi,
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
+
+Les équipes avec les baisses les plus importantes (ou les hausses les plus modestes) depuis la semaine dernière :
+
+```{r supHasSalaryTable}
+currentBiggestChange(data = reportData, levelVar = supervisor, performVar = revenuEmploi,
+	reportEnd = reportWeekEnd, topOrBottom = "bottom", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus faibles cette semaine : 
 
 ```{r hasSalaryTable}
 # enquêteurs avec les moyennes les plus faibles
@@ -655,6 +712,15 @@ plotOverTimeTeam(data = reportData, displayVar = numEntreprises,
 	titleText = "", xText = "Semaine de collecte", yText = "Nombre")
 ```
 
+Les équipes avec les baisses les plus importantes (ou les hausses les plus modestes) depuis la semaine dernière :
+
+```{r numSupEnterpriseTable}
+currentBiggestChange(data = reportData, levelVar = supervisor, performVar = numEntreprises,
+	reportEnd = reportWeekEnd, topOrBottom = "bottom", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus faibles cette semaine : 
+
 ```{r numEnterpriseTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = numEntreprises, 
@@ -670,6 +736,15 @@ plotOverTimeTeam(data = reportData, displayVar = pratiqueAgriculture,
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
+
+Les équipes avec les baisses les plus importantes (ou les hausses les plus modestes) depuis la semaine dernière :
+
+```{r supSoesAgricTable}
+currentBiggestChange(data = reportData, levelVar = supervisor, performVar = pratiqueAgriculture,
+	reportEnd = reportWeekEnd, topOrBottom = "bottom", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus faibles cette semaine : 
 
 ```{r doesAgricTable}
 # enquêteurs avec les moyennes les plus faibles
@@ -687,6 +762,15 @@ plotOverTimeTeam(data = reportData, displayVar = pratiqueElevage,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
 
+Les équipes avec les baisses les plus importantes (ou les hausses les plus modestes) depuis la semaine dernière :
+
+```{r supDoesLivestockTable}
+currentBiggestChange(data = reportData, levelVar = supervisor, performVar = pratiqueElevage,
+	reportEnd = reportWeekEnd, topOrBottom = "bottom", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus faibles cette semaine : 
+
 ```{r doesLivestockTable}
 # enquêteurs avec les moyennes les plus faibles
 currentTopOrBottom(data = reportData, levelVar = interviewer, performVar = pratiqueElevage, 
@@ -702,6 +786,15 @@ plotOverTimeTeam(data = reportData, displayVar = pratiquePeche,
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
+
+Les équipes avec les baisses les plus importantes (ou les hausses les plus modestes) depuis la semaine dernière :
+
+```{r supDoesFisheriesTable}
+currentBiggestChange(data = reportData, levelVar = supervisor, performVar = pratiquePeche,
+	reportEnd = reportWeekEnd, topOrBottom = "bottom", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus faibles cette semaine : 
 
 ```{r doesFisheriesTable}
 # enquêteurs avec les moyennes les plus faibles
@@ -720,6 +813,15 @@ plotOverTimeTeam(data = filter(reportData, is.finite(percParcellesNotMeasured)),
 	reportStart = reportWeekStart, reportEnd = reportWeekEnd,
 	titleText = "", xText = "Semaine de collecte", yText = "Pourcentage")
 ```
+
+Les équipes avec les hausses les plus importantes depuis la semaine dernière :
+
+```{r supPlotsNotMeasuredTable}
+currentBiggestChange(data = filter(reportData, is.finite(percParcellesNotMeasured)), levelVar = supervisor, performVar = percParcellesNotMeasured,
+	reportEnd = reportWeekEnd, topOrBottom = "top", colNames = c("Équipe", "% changement"))
+```
+
+Les enquêteurs avec les niveaux les plus importants cette semaine : 
 
 ```{r plotsNotMeasuredTable}
 # enquêteurs avec les moyennes les plus faibles
