@@ -1,13 +1,15 @@
-
+	
 plotOverTimeTeam <- function(
 	data, 
 	displayVar, 
 	outputPath = NA, 
 	reportStart, 
 	reportEnd, 
-	titleText, 
-	xText, 
-	yText
+	reportScope = NA,
+	titleText = waiver(),
+	captionText = waiver(),  
+	xText = waiver(), 
+	yText = waiver()
 	) {
 
 # =============================================================================
@@ -38,7 +40,16 @@ plotOverTimeTeam <- function(
 # Prepare data to graph
 # =============================================================================
 
-	# 
+	# filter data set to user-defined scope, if scope provided
+	scope = enexpr(reportScope)
+	if (!is_bare_atomic(scope)) {
+
+		data <- data %>%
+			filter(!!scope)
+
+	}	
+
+	# compute graph values for variable values to display
 	displayVar = rlang::enquo(displayVar)
 
 	dataToGraph <- data %>%
@@ -122,7 +133,7 @@ plotOverTimeTeam <- function(
 				aes(color=supervisor, label = round(avgVal, digits = 1)), 
 				color="#183d38", fontface = "bold",
 				# put text above points
-				nudge_y = (max(dataToGraph$avgVal) - min(dataToGraph$avgVal))*0.2, size = 4,
+				nudge_y = (max(dataToGraph$avgVal, na.rm = TRUE) - min(dataToGraph$avgVal, na.rm = TRUE))*0.2, size = 4,
 				# move points on vertical and horizontal borders inward
 				vjust="inward", hjust="inward"
 				) +
@@ -136,7 +147,7 @@ plotOverTimeTeam <- function(
 				axis.text.x = element_text(angle = 90),
 				strip.text.x = element_text(size = 10)
 			) +
-			ggtitle(titleText) +
+			labs(title = titleText, caption = captionText) +
 			xlab(xText) +
 			ylab(yText) +
 			facet_wrap(~supervisor)	
