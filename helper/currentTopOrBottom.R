@@ -2,9 +2,10 @@
 currentTopOrBottom <- function(
 	data, 						# data frame used for the table
 	levelVar, 					# variable that defines level of reporting (e.g., interviewer, supervisor)
-	performVar, 				# variable whosee values will be measured in the table
+	performVar, 				# variable whose values will be measured in the table
 	reportStart, 				# week when report starts
 	reportEnd, 					# week when report ends
+	reportScope = NA, 			# logical expression describing observations over which report produced
 	topOrBottom = "bottom", 	# whether performers in top or bottom of distribution should be shown
 	colNames 					# text for column headers
 	) {
@@ -37,9 +38,18 @@ currentTopOrBottom <- function(
 
 	# look at either top or bottom 10%
 	if (topOrBottom == "bottom") {
-		rank = quo(min(weeklyRank))
+		rank = quo(min(weeklyRank, na.rm = TRUE))
 	} else if (topOrBottom == "top") {
-		rank = quo(max(weeklyRank))
+		rank = quo(max(weeklyRank, na.rm = TRUE))
+	}
+
+	# filter data set to user-defined scope, if scope provided
+	scope = enexpr(reportScope)
+	if (!is_bare_atomic(scope)) {
+
+		data <- data %>%
+			filter(!!scope)
+
 	}
 
 	# determine reporting period
@@ -48,6 +58,7 @@ currentTopOrBottom <- function(
 # =============================================================================
 # create table
 # =============================================================================
+
 
 	# rank interviewers into deciles each week
 	rankByWeek <- 
