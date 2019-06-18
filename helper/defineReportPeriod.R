@@ -21,7 +21,7 @@ defineReportPeriod <- function(data, numWeeksBefore = 0, endDate = NA) {
 	lapply(packagesNeeded, library, character.only = TRUE)
 
 # =============================================================================
-# Compute first and list weeks in data set
+# Compute first and last weeks in data set
 # =============================================================================
 
 	# compute the first and last weeks of data present in the data set
@@ -54,6 +54,12 @@ defineReportPeriod <- function(data, numWeeksBefore = 0, endDate = NA) {
 		# end of report: week of provided end date
 		reportWeekEnd = floor_date(endDate, unit = "week", 
 			week_start = getOption("lubridate.week.start", 1))
+
+		# but if specified report week comes later than week of last data point
+		# then use the latter
+		if (lastWeek < reportWeekEnd) {
+			reportWeekEnd = lastWeek
+		}
 		
 		# start of report: either N weeks prior to end, or first week--which if closer
 		calcStart = reportWeekEnd - weeks(numWeeksBefore)
